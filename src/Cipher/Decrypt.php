@@ -5,7 +5,7 @@ use Davmixcool\Cipher\Bytes;
 
 class Decrypt
 {
-	public function __construct($data,$method,$key)
+	public static function token($data,$method,$key)
 	{
 	    $iv_strlen = 2  * Bytes::iv($method);
 	    if(preg_match("/^(.{" . $iv_strlen . "})(.+)$/", $data, $regs)) {

@@ -39,7 +39,7 @@ class Cryptman
 
   	public function encrypt()
   	{
-  		return new Encrypt(
+  		return Encrypt::token(
 		  			$this->data,
 		  			$this->method,
 		  			$this->key
@@ -48,7 +48,7 @@ class Cryptman
 
   	public function decrypt()
   	{
-    	return new Decrypt(
+    	return Decrypt::token(
     				$this->data,
     				$this->method,
     				$this->key
