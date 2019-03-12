@@ -52,7 +52,7 @@ use Davmixcool\Cryptman;
 	
 	$cryptman = new Cryptman([
 		'key' => 'Your cipher key',
-		'method' => 'Your cipher methods', //see: http://php.net/openssl_get_cipher_methods for more. resolves to default menthod if none selected
+		'method' => 'Your cipher method', //see: http://php.net/openssl_get_cipher_methods for more. resolves to default menthod if none selected
 	]);
 
 	//Encrypt data
