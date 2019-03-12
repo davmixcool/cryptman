@@ -30,9 +30,8 @@ composer require davmixcool/cryptman
 Simple usage.
 
 ```php
-use Davmixcool\Cryptman;
-	
-	$cryptman = new Cryptman([
+
+	$cryptman = new Davmixcool\Cryptman([
 		'key' => 'Your cipher key'
 	]);
 
@@ -48,9 +47,8 @@ use Davmixcool\Cryptman;
 Advance Usage
 
 ```php
-use Davmixcool\Cryptman;
 	
-	$cryptman = new Cryptman([
+	$cryptman = new Davmixcool\Cryptman([
 		'key' => 'Your cipher key',
 		'method' => 'Your cipher method', //see: http://php.net/openssl_get_cipher_methods for more. resolves to default menthod if none selected
 	]);
