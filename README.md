@@ -1,4 +1,4 @@
-# Google Recaptcha.
+# Cryptman.
 
 A Two-way encryption manager using the OpenSSL library
 
@@ -27,7 +27,7 @@ composer require davmixcool/cryptman
 
 
 ### Usage
-Simple usage.
+Simple Usage.
 
 ```php
 
