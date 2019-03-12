@@ -1,7 +1,7 @@
 {
   "name": "davmixcool/cryptman",
   "type": "library",
-  "description": "Two-way encryption manager using the OpenSSL library",
+  "description": "A Two-way encryption manager using the OpenSSL library",
   "keywords": [
     "Crypto",
     "Encryption",
