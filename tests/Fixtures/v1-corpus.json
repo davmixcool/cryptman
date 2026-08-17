@@ -1,0 +1,1157 @@
+{
+    "$schema_version": 1,
+    "_policy": "FROZEN, APPEND-ONLY. Never modify or remove an existing fixture. New fixtures may be appended with new ids. Regenerating this file is a breaking change to the compatibility contract. See tests/Fixtures/README.md.",
+    "generated_at": "2026-08-17T21:59:02Z",
+    "generated_by": "tools/generate-v1-corpus.php",
+    "source": {
+        "package": "davmixcool/cryptman",
+        "tag": "v1.0.0",
+        "tag_type": "lightweight",
+        "commit": "44ee2023ef5d1b26c64da8317ae93738ebea410d",
+        "blobs": {
+            "src/Cipher/Bytes.php": "688eacb9b999fc472f101941470f8f5fc555ea19",
+            "src/Cipher/Encrypt.php": "1f72aec6dabd44b41dcdd5052d6973b41eec39bc",
+            "src/Cipher/Decrypt.php": "7f84becb0a12c7d1186eb6beead2149884ef9eb0",
+            "src/Cryptman.php": "bbc94d904fa37801ec6dc1d6d94bcc7dce6cd6a9"
+        }
+    },
+    "encoding": {
+        "rule": "Every field whose name ends in _b64 is standard base64 (RFC 4648) of raw bytes.",
+        "token": "Literal string. v1 guarantees printable ASCII: a lowercase hex IV followed by base64 ciphertext.",
+        "method_null": "A null 'method' means the option was OMITTED from the constructor, exercising v1's default of aes-128-ctr.",
+        "v1_result": "Tagged union: {\"type\":\"false\"} or {\"type\":\"string\",\"value_b64\":...}. v1 returns strict false on some inputs and an empty string on others; these are NOT interchangeable."
+    },
+    "iv_derivation": {
+        "scheme": "substr(hash_hmac('sha256', <fixture id>, 'cryptman/v1-corpus/iv/v1', true), 0, iv_len)",
+        "why": "Deterministic so the corpus can be re-derived and audited (--verify-only). v1 in production uses openssl_random_pseudo_bytes; the wild/* fixtures cover that path.",
+        "note": "Fixture ids are the HMAC input and are therefore load-bearing. Renaming an id changes its IV and invalidates its token."
+    },
+    "fixtures": [
+        {
+            "id": "cbc128/key-ascii-1char/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "eA==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "ec3480e3729cebc4e62e6d05a69541354XQ4iq4b1Sefje81CCm3gn0Gpbl7FP1XtTjLsbp0/80=",
+            "decrypt_with": {
+                "key_b64": "eA==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Proves key LENGTH is irrelevant on the digest branch: a 1-char key becomes the same 32 bytes as any other printable key."
+        },
+        {
+            "id": "cbc128/key-ascii-printable/pt-binary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8=",
+            "token": "dc0f660705c0f9ce51359ee1b28820cdZpW4Hpd9vKbc+9+L05f5gGpoWX4ruKpopllS3+XyExDQVS09mVFzYfkpcpUNC1xb",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8="
+            },
+            "v1_result_is_utf8": false,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-ascii-printable/pt-block-boundary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "MDEyMzQ1Njc4OWFiY2RlZg==",
+            "token": "47fcf7b741a008f9fab9cd367b480a88MymnQqKYoi/GV+fZGrmtWLQw5nZ+5GfBfjxiaUeKUu4=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "MDEyMzQ1Njc4OWFiY2RlZg=="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-ascii-printable/pt-empty",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "",
+            "token": "0449b566ad5b0f905ebe5c35f7bf61ccEfUBeHLvSpn5SGiiCwB7lg==",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": ""
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-ascii-printable/pt-multiblock",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g",
+            "token": "ea87852840b5e5286f527efd66a25e3ctGA1yqEXV11pTx+gTiQ4WfIUBawlsCjLJZADxMc1+ofI3zF+Fjqj4Nbe4awPfVb7+6It3b2Xc1mgr5272qnHmHqCgq3Y2uHCxJZ1hDRa9sslqN9+FMIJrJdoTC2z9yTpVjt5i58Ltp9xztyakesS2C5iCG1PZ90UR4nFjrWUqiAaf4mDmDeq/bPNO3IR/rl/x/Kv3AhYPDjnGSW6X3Mgv/jhIn2c5o/bGJghaZu5Xh8dihRMzMFH1MOp66thFOT6pLaZeyJBYnkrkN7GBdMwLQ1CkLinc58/uvy1jUclX48=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-ascii-printable/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "56c74fb613da91e281e73981232dfaf1A4lBAztQSfOQbiENhfVkxQ9rd7RMjpobepNLETgBAPI=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-ascii-printable/pt-utf8",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok=",
+            "token": "34c334797be45ae832e35d527c7eeb4egi4w/a13cPGgYEu1MODWb3uH67soDTpJ10DqR8829RT89fAr3j88r9QYKJcjK3Hu",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-bin16/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "OWX3Nc1Dan55T0AvY/qWBg==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "cd831b42d861e6c73f870f166e0bf050rO/RVK7ggbuCjQvUUeD+d9PLFz8e2xuvwb8x0PoPKyw=",
+            "decrypt_with": {
+                "key_b64": "OWX3Nc1Dan55T0AvY/qWBg==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-bin32/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "xeEJbkVE+IH0ZmypHv1e/xsBq3do95aK357hcacs3vY=",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "cb71c056da4e03a4d953e800bd579a0fY4OEzUaHkZcEkLsty5y+AVPKPIkIvni/65hMZjjqwvo=",
+            "decrypt_with": {
+                "key_b64": "xeEJbkVE+IH0ZmypHv1e/xsBq3do95aK357hcacs3vY=",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-empty/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "fe6e50d84e1ec1b6f0129c4a087bfc82UY4RUSLxZOe+qEenB4zugO2L0GnLXHVk6H3z+HsE2h4=",
+            "decrypt_with": {
+                "key_b64": "",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "ctype_print(\"\") is FALSE, so an empty key takes the RAW branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this (PRD 19.1)."
+        },
+        {
+            "id": "cbc128/key-nul/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "YWJjAGRlZg==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "0598771d1a44cd946477b1242e5c25b0kzawyRYF4HEGRGOUFL7dACNEI+DDkUNBE/nyFLs1+hI=",
+            "decrypt_with": {
+                "key_b64": "YWJjAGRlZg==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc128/key-utf8-cafe/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "cdf1bd6968dc479bc57596be7970d780UpvTtsacsrDOGj5ebpvouvG7qEx4oSEZInJqgjGHXkw=",
+            "decrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "ctype_print(\"café\") is FALSE, so an accented passphrase silently takes the RAW key branch (5 bytes) instead of the SHA-256 branch. PRD 17.1."
+        },
+        {
+            "id": "cbc256/key-ascii-printable/pt-binary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8=",
+            "token": "89fa54390531c58262c95216a7e6014c+GCLvpRE8XaJFreQeZcO2BU7i5M2HKqrsKMEdXvakzuEdHko31X0xC0Ag3c5wNYI",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8="
+            },
+            "v1_result_is_utf8": false,
+            "notes": ""
+        },
+        {
+            "id": "cbc256/key-ascii-printable/pt-block-boundary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "MDEyMzQ1Njc4OWFiY2RlZg==",
+            "token": "dd1d8d76704a237d07654b707fc86f18KgWgClV9l8UY7UqRRnuwWLA0zIj6PS+Wy4dacmkJweI=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "MDEyMzQ1Njc4OWFiY2RlZg=="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc256/key-ascii-printable/pt-empty",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "",
+            "token": "bb945930f0ee6191bec0979e23035d70zS1Bl0+YtXe7hYgkBXUgYg==",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": ""
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc256/key-ascii-printable/pt-multiblock",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g",
+            "token": "6775446878ab5295e7319f1cb6d10408quM0uSF+4zS6ZWljIKT8j3pG62Pg5l3A8DoAnerqeyFMYn6pzOAfK8QHsqE+BJ7ZVLu9gF3fytPLH/+vZPWq2kAQHcUh+O3k/0vxskMPxuTbJNjz5dsHQSY3fjNWW4h+aI13qT/Z7AkIp+wfaidXdByHgJ7xTQye4amMcD5rshtgitgwgmr3KdlwYIWccnhzKQCfMbTRGebFzYhO54nrV3uLArBY/W85wQohWd1VZKClZfAM7WaUFu0YvNX+0GDSJHHLqRnVGbddSRibmB/uj4GzuNnuHIChWUGIZdN3f60=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc256/key-ascii-printable/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "032d0c240d90d978f9c5152b18b907e3eAISDtCxlU9AeE1SMm3wKloexojkE6klGGN8Zp88YzI=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc256/key-ascii-printable/pt-utf8",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok=",
+            "token": "7c3a7d93f7e98a693278b6e175e231c2vN3sCe3vXltoYm+J5RK2slh976O3U4/UvshsHW/pbVch5Nq6cu1XmD/kP6rVrnxn",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "cbc256/key-utf8-cafe/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "e3fa55f7601275060217611722d80cf1Eu7nrvNdUa8tOHaKdhJ7dZYa2dL0DnKBjQLYW8OkIXc=",
+            "decrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Raw key branch against AES-256."
+        },
+        {
+            "id": "ctr128/key-ascii-1char/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "eA==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "6567e9c0f41d6f6a08cc6b0df6523ab0rETHGVy64Ym5cvHxxqyJNhKElBEN",
+            "decrypt_with": {
+                "key_b64": "eA==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Proves key LENGTH is irrelevant on the digest branch: a 1-char key becomes the same 32 bytes as any other printable key."
+        },
+        {
+            "id": "ctr128/key-ascii-printable/pt-binary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8=",
+            "token": "b6c49e7ba821085ebbf4464c50b47c2cHSo+dyTXqb31/OhhpxRHA5Tc8JafWbUhw0+HMSWdD1k=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8="
+            },
+            "v1_result_is_utf8": false,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-ascii-printable/pt-block-boundary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "MDEyMzQ1Njc4OWFiY2RlZg==",
+            "token": "ac90308632c872e85a3b1388865db646Ko2VA1X4NWCdXT943YBiuQ==",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "MDEyMzQ1Njc4OWFiY2RlZg=="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-ascii-printable/pt-empty",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "",
+            "token": "d0ec1a976aeae610d1861a0416a7e5bc",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "v1 QUIRK: CTR encryption of empty plaintext yields the bare 32-char hex IV. Decrypt requires >=1 body char, so decrypt() returns FALSE. Compare cbc*/key-ascii-printable/pt-empty, which returns ''."
+        },
+        {
+            "id": "ctr128/key-ascii-printable/pt-multiblock",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g",
+            "token": "5cacd373ba951d3f3d8aca6e1ac9cd6cQa6vQVI9RxVCaVQOjddgUYFXwQMtk72vROF4urYvTrcZ/qb94YGpkQnxlc4AVAl+6gjB5TW3ho6YFEGQbr2fjp0/+eNwhkxnmO7iBJ3GHeQHJDMImfat7rVRnGWh+Y/jPUEUiqCwID9CnsN2sCpTbYDIxrbcobkxsZva3i5UINuTMGyF97/shElOgvi4SIfoLkKoCbsej3isG7U4MTnUZ04ZsSxLA7yOsukwPDMvT/gAVsQArZqLUCyHzmHuxgfv9TIdEtUT97P34aBdiCsEM9wd",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-ascii-printable/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "c2f673cce3923c12cb360160fa64e037MSfiILTIBvZgO0g2oDMVNpUoSZBW",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-ascii-printable/pt-utf8",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok=",
+            "token": "caad08f376cc2d955a01cbdec658dc13pIqHLC1Wabjqu2MkM5J/KSFuAHnzrVvYxNI/Wi+kAFo=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-bin16/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "OWX3Nc1Dan55T0AvY/qWBg==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "bedf76c502364f9892b6efb70b19bca4cfPHQVCQQ/v7fs2892X13+TDJUHP",
+            "decrypt_with": {
+                "key_b64": "OWX3Nc1Dan55T0AvY/qWBg==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-bin32/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "xeEJbkVE+IH0ZmypHv1e/xsBq3do95aK357hcacs3vY=",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "e0ba674da7bdb7cc2c53f3a3b2b2aa96Eo4erdpJ8/XtHRInWl39jR5klY/K",
+            "decrypt_with": {
+                "key_b64": "xeEJbkVE+IH0ZmypHv1e/xsBq3do95aK357hcacs3vY=",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-empty/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "4d11e1e7f0c475e3fb7956e9857b3f37KO8nHlvJXAV65/PK3taWcQKrfnRY",
+            "decrypt_with": {
+                "key_b64": "",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "ctype_print(\"\") is FALSE, so an empty key takes the RAW branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this (PRD 19.1)."
+        },
+        {
+            "id": "ctr128/key-nul/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "YWJjAGRlZg==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "58031a8c3ea17b9eae4d76fa1f5ed42eHQ6Cs4iXr514BZ01g/aAz2NaZzwP",
+            "decrypt_with": {
+                "key_b64": "YWJjAGRlZg==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr128/key-utf8-cafe/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "8bce1079bc75cbfd0985d5015aa62014rQQmoDFDtXt7HnlvN+Y8ouA9N7BH",
+            "decrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "ctype_print(\"café\") is FALSE, so an accented passphrase silently takes the RAW key branch (5 bytes) instead of the SHA-256 branch. PRD 17.1."
+        },
+        {
+            "id": "ctr256/key-ascii-printable/pt-binary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8=",
+            "token": "dcfdbdd3ecc000f8ded45a71533a81dcdEAecDNNj2xc9vsBh2Q+YaiIpVri0kVPU1Xfq+ZphGI=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "AAEC/f7/uEB2E7EJs8mUMssgFvwiB7mDwE981qmKfl8="
+            },
+            "v1_result_is_utf8": false,
+            "notes": ""
+        },
+        {
+            "id": "ctr256/key-ascii-printable/pt-block-boundary",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "MDEyMzQ1Njc4OWFiY2RlZg==",
+            "token": "cef2de22170f3e57a10f125eeee64dd8BeSuDhSyuMlRNWmIqWU1mg==",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "MDEyMzQ1Njc4OWFiY2RlZg=="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr256/key-ascii-printable/pt-empty",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "",
+            "token": "d649793e70e6c272191126c6bb1ad06a",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "v1 QUIRK: CTR encryption of empty plaintext yields the bare 32-char hex IV. Decrypt requires >=1 body char, so decrypt() returns FALSE. Compare cbc*/key-ascii-printable/pt-empty, which returns ''."
+        },
+        {
+            "id": "ctr256/key-ascii-printable/pt-multiblock",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g",
+            "token": "7f77f966d4eb64ecdf7bbc23cf62720bD2PVa5PoC9f5vI+QbEyIbeqxng+CfJELO8EArQVK3Uyqrh66Xm5hVJ0EwpRms2HAimEkUa3j6zlMY61UBcEj73+jRROZvHh6sovgic+jF/tTx80GR5J6RKN8daxybeg50j+rgvQ/jhBai8FuMb5FcQI5x8lPbLIi15/5TVM6UKQIvLCesZovTRnzJsg5m7AcGHM7AuK/xjvjuElHRSpnem3qoJokliCVyHLsdKbaZjXxQ0/2YOFi0veuhYuWRaoGQln+klXiwna6GL91Zv2yu4YQ",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "VGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4gVGhlIHF1aWNrIGJyb3duIGZveC4g"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr256/key-ascii-printable/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "97265450535759b0dd961532d404ba094fUfq0H/fSwkZy7Ja7xvKXKg9lE1",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr256/key-ascii-printable/pt-utf8",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok=",
+            "token": "6486e34bbce62ab3ff0b8506491e9505v932Md3BFq4bMNtWaid/UpivZQSr8POPXskNqxu6MCQ=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "aMOpbGxvIHfDtnJsZCDigJQg5pel5pys6KqeIPCfjok="
+            },
+            "v1_result_is_utf8": true,
+            "notes": ""
+        },
+        {
+            "id": "ctr256/key-empty/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "99e46719c6256888f57530aea8631addvtY8eXoHia2/lUt/caITtsyczWVu",
+            "decrypt_with": {
+                "key_b64": "",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Raw key branch against AES-256."
+        },
+        {
+            "id": "ctr256/key-utf8-cafe/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "1206be3cf35ad88d52aec5c23b1e6b94u8pYwWvXtVBDb7lgXfSdqyir209+",
+            "decrypt_with": {
+                "key_b64": "Y2Fmw6k=",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "raw",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Raw key branch against AES-256."
+        },
+        {
+            "id": "neg/cbc-token-read-as-default-ctr/long",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "ab36940e05be2de159a337c583e39ae70Eq+3e72z06oCK5cimc3NhnydOjeoXJwZyRLDzzO8wk=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": null
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "IVKMUdPh9xYZcBQDPLIAhAZpfp/LvTtpxwVwziIA920="
+            },
+            "v1_result_is_utf8": false,
+            "notes": "PRD 22.1/22.2: CBC token read under the omitted-method default (aes-128-ctr) returns a garbage STRING, not false. The only signal is that the garbage is not valid UTF-8."
+        },
+        {
+            "id": "neg/cbc-token-read-as-default-ctr/short",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "QQ==",
+            "token": "cb6ef02d04df79d401b69e82ad14f68cc6VuzBRyZBT/T5R6letaOw==",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": null
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "SAgygQAK/7PtfVeEynkvZg=="
+            },
+            "v1_result_is_utf8": false,
+            "notes": "The weak spot, recorded deliberately: with only 16 bytes of garbage the UTF-8 guard has a measured ~0.02% chance of a false negative. The guard REDUCES misread probability; it does not detect misreads."
+        },
+        {
+            "id": "neg/ctr-token-read-as-cbc/basic",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "1718097459d1ccfc9c767072c22f8fbex7vJMJoUB535MSdm3LQp9gwXfM9n",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "The reverse direction DOES fail: CBC checks PKCS#7 padding, so a CTR token read as CBC returns false. Failure detection is asymmetric between families."
+        },
+        {
+            "id": "neg/non-hex-iv/basic",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzhIuzk6RH31lru6T19GP2JmZha04q",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "IV prefix replaced with non-hex characters: ctype_xdigit() fails and decrypt() returns false."
+        },
+        {
+            "id": "neg/truncated-token/basic",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "8bacd9c4e92bc51ff9d3",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "Token truncated below the 32-char IV prefix: the /^(.{32})(.+)$/ match fails and decrypt() returns false."
+        },
+        {
+            "id": "neg/wrong-key-cbc/1",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "71957089577e7fa2d1b5df0e3b1abf17HSMVMIRyDo55gNsILSsCGKsJbm9wLtkDv52D1/Kw6/8=",
+            "decrypt_with": {
+                "key_b64": "d3Jvbmcta2V5LTE=",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "Under CBC a wrong key fails the padding check and returns false — but this is luck, not integrity: ~1 in 256 wrong keys produce valid padding."
+        },
+        {
+            "id": "neg/wrong-key-cbc/2",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "120a864bf237de067aeeeb9ded76a4f7SC9An2vjRrC7oILF1aE59ctRUkYgrfY3u4LEMui5wEU=",
+            "decrypt_with": {
+                "key_b64": "d3Jvbmcta2V5LTI=",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "Under CBC a wrong key fails the padding check and returns false — but this is luck, not integrity: ~1 in 256 wrong keys produce valid padding."
+        },
+        {
+            "id": "neg/wrong-key-cbc/3",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "5d91b1dbff81e539d5021b5a3644657fUCscVkToB171xW5qerXq6emJAy4ifFDJEYg+b81SP+c=",
+            "decrypt_with": {
+                "key_b64": "d3Jvbmcta2V5LTM=",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "false"
+            },
+            "v1_result_is_utf8": null,
+            "notes": "Under CBC a wrong key fails the padding check and returns false — but this is luck, not integrity: ~1 in 256 wrong keys produce valid padding."
+        },
+        {
+            "id": "neg/wrong-key-ctr/1",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "ad923777026d2dc5f5d68568efb7a2c8UGwNAn9DijOHtb61Ee6sC9J3sZXV",
+            "decrypt_with": {
+                "key_b64": "d3Jvbmcta2V5LTE=",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "89iAtEKgF85Qh3pUxk440EjiKu7p"
+            },
+            "v1_result_is_utf8": false,
+            "notes": "PRD 20.1: a wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
+        },
+        {
+            "id": "neg/wrong-key-ctr/2",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "4fce6b3b5b9ddfce0b0bea66a422de9fwRnDbeez1NviP+KEGVsllu9cOy6h",
+            "decrypt_with": {
+                "key_b64": "d3Jvbmcta2V5LTI=",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "E4npeIbR+drUMtdK9vVC8lIPWkMu"
+            },
+            "v1_result_is_utf8": false,
+            "notes": "PRD 20.1: a wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
+        },
+        {
+            "id": "neg/wrong-key-ctr/3",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "d10d5d6800e7e9480295f25e9bf16a92Bao85CfwPxrzYPS4JoUqwFJE/tuG",
+            "decrypt_with": {
+                "key_b64": "d3Jvbmcta2V5LTM=",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "derived",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "IxYZS81RYEpIU/Wh2qhTwKLVXm9d"
+            },
+            "v1_result_is_utf8": false,
+            "notes": "PRD 20.1: a wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
+        },
+        {
+            "id": "wild/cbc128/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "6e823852eca139c0b957842c165ea2f4UYt2XLEOgs2OCWJDbX73aNJ6R/kqcSIP2clGmtrK6g8=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "wild",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Generated with a REAL random IV from unmodified v1, not the derived-IV scheme. Proves production tokens decode. Skipped by --verify-only."
+        },
+        {
+            "id": "wild/cbc256/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "7bd41aeb2056782e2ddf9835a0ba5f6fU3Pb1nZJqfJG5kGvp1NVXR5aGoaj04BFIXmN4tMdnC0=",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-cbc"
+            },
+            "key_branch": "digest",
+            "iv": "wild",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Generated with a REAL random IV from unmodified v1, not the derived-IV scheme. Proves production tokens decode. Skipped by --verify-only."
+        },
+        {
+            "id": "wild/ctr128/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "f4966acead9507c91742b001ed50e0d29QC3AMv5fvqJ2ygy/m22p6Nv/2va",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-128-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "wild",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Generated with a REAL random IV from unmodified v1, not the derived-IV scheme. Proves production tokens decode. Skipped by --verify-only."
+        },
+        {
+            "id": "wild/ctr256/pt-short-ascii",
+            "encrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "token": "921d564ad9c69de41e5c0e772c4f872daq99wgehIabU4hW0elJtmGD1qwq4",
+            "decrypt_with": {
+                "key_b64": "Y29ycmVjdCBob3JzZSBiYXR0ZXJ5IHN0YXBsZQ==",
+                "method": "aes-256-ctr"
+            },
+            "key_branch": "digest",
+            "iv": "wild",
+            "v1_result": {
+                "type": "string",
+                "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
+            },
+            "v1_result_is_utf8": true,
+            "notes": "Generated with a REAL random IV from unmodified v1, not the derived-IV scheme. Proves production tokens decode. Skipped by --verify-only."
+        }
+    ]
+}
