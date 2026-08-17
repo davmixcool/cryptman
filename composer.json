@@ -24,11 +24,32 @@
     }
   ],
   "require": {
-    "php": ">=5.5.0"
+    "php": "^8.2"
+  },
+  "require-dev": {
+    "pestphp/pest": "^3.0"
   },
   "autoload": {
-        "psr-4": {
-            "Davmixcool\\": "src"
-        }
-  }
+    "psr-4": {
+      "Davmixcool\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Davmixcool\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "pest",
+    "corpus:check": "pest --group=corpus",
+    "corpus:regen-check": "php tools/generate-v1-corpus.php --verify-only"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    },
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
 }
