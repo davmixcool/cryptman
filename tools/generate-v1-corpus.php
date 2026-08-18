@@ -26,9 +26,11 @@ declare(strict_types=1);
 // ---------------------------------------------------------------------------
 
 namespace Davmixcool\Cipher {
+    use Corpus\Iv;
+
     function openssl_random_pseudo_bytes(int $length): string
     {
-        return \Corpus\Iv::next($length);
+        return Iv::next($length);
     }
 }
 
@@ -73,6 +75,7 @@ namespace Corpus {
     final class V1Source
     {
         public const TAG = 'v1.0.0';
+
         public const COMMIT = '44ee2023ef5d1b26c64da8317ae93738ebea410d';
 
         /** Git blob hashes of the four v1 source files at TAG. */
@@ -207,7 +210,7 @@ namespace {
      *
      * @param  array{key:string,method:?string}  $encryptWith
      * @param  array{key:string,method:?string}  $decryptWith
-     * @param  callable(string):string|null  $mutate  optional token corruption
+     * @param  (callable(string): string)|null  $mutate  optional token corruption
      */
     function makeFixture(
         string $id,
@@ -502,7 +505,7 @@ namespace {
                 'why' => 'Deterministic so the corpus can be re-derived and audited '
                     .'(--verify-only). v1 in production uses openssl_random_pseudo_bytes; '
                     .'the wild/* fixtures cover that path.',
-                'note' => "Fixture ids are the HMAC input and are therefore load-bearing. "
+                'note' => 'Fixture ids are the HMAC input and are therefore load-bearing. '
                     .'Renaming an id changes its IV and invalidates its token.',
             ],
             'fixtures' => $fixtures,
@@ -526,7 +529,7 @@ namespace {
 
         if ($verifyOnly) {
             if (! is_file(CORPUS_PATH)) {
-                fwrite(STDERR, "No corpus at ".CORPUS_PATH." to verify against.\n");
+                fwrite(STDERR, 'No corpus at '.CORPUS_PATH." to verify against.\n");
                 exit(1);
             }
 

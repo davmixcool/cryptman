@@ -102,9 +102,30 @@ describe('leak resistance', function () {
 
     it('wipes material on request', function () {
         $key = Key::fromUserInput('my-application-secret');
+
+        expect($key->isWiped())->toBeFalse();
+
         $key->wipe();
 
-        expect($key->material())->toBe('');
+        expect($key->isWiped())->toBeTrue();
+    });
+
+    it('refuses to hand out material once wiped', function () {
+        // Returning '' would let an empty key travel onward and fail deep in a
+        // driver as "requires a 32-byte key, got 0" -- an error that says
+        // nothing about the real cause.
+        $key = Key::fromUserInput('my-application-secret');
+        $key->wipe();
+
+        expect(fn () => $key->material())->toThrow(InvalidKeyException::class);
+    });
+
+    it('is safe to wipe twice', function () {
+        $key = Key::fromUserInput('my-application-secret');
+        $key->wipe();
+        $key->wipe();
+
+        expect($key->isWiped())->toBeTrue();
     });
 });
 

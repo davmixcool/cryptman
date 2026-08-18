@@ -166,7 +166,7 @@ final class LegacyDriver
                 'Cryptman v1 value decrypted to non-UTF-8 bytes using method "%s", which usually '
                 .'means the legacy method is wrong — a stream cipher returns garbage rather than '
                 .'failing. Do NOT re-encrypt this value. If the plaintext really is binary, set '
-                ."legacy.strict => false.",
+                .'legacy.strict => false.',
                 $this->method
             ));
         }

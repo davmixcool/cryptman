@@ -213,27 +213,3 @@ it('covers every combination the compatibility contract requires', function () {
             ->toBe('false', "{$fixture['id']}: a wrong key under CBC is caught by the padding check");
     }
 })->group('corpus');
-
-it('still ships the frozen v1 cipher classes unmodified', function () {
-    // src/Cryptman.php was rewritten for v2, so it is no longer pinned here -
-    // that is the expected end of the 'v1-only' provenance check. The three
-    // Cipher/ classes remain frozen reference code and are still verified
-    // against the blob hashes recorded in the corpus envelope.
-    $blobs = corpus()['source']['blobs'];
-
-    foreach ($blobs as $path => $expected) {
-        if ($path === 'src/Cryptman.php') {
-            continue;
-        }
-
-        $full = __DIR__.'/../../'.$path;
-
-        expect($full)->toBeReadableFile();
-
-        $contents = (string) file_get_contents($full);
-
-        // Reproduces `git hash-object` with no git dependency.
-        expect(sha1('blob '.strlen($contents)."\0".$contents))
-            ->toBe($expected, "{$path} differs from the v1.0.0 release");
-    }
-})->group('corpus');

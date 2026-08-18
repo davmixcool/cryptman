@@ -19,6 +19,4 @@ use InvalidArgumentException;
  *
  * Messages must never include the key, or any part of it.
  */
-final class InvalidKeyException extends InvalidArgumentException implements CryptmanException
-{
-}
+final class InvalidKeyException extends InvalidArgumentException implements CryptmanException {}

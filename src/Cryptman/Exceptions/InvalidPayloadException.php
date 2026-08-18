@@ -19,6 +19,4 @@ use InvalidArgumentException;
  * Decoding untrusted input must never crash the process. Any malformed input
  * produces this exception (PRD §51).
  */
-final class InvalidPayloadException extends InvalidArgumentException implements CryptmanException
-{
-}
+final class InvalidPayloadException extends InvalidArgumentException implements CryptmanException {}

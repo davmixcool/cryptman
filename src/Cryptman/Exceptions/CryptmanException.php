@@ -24,6 +24,4 @@ use Throwable;
  * continues to catch LegacyDecryptionException, because that relationship is
  * real inheritance (see LegacyDecryptionException).
  */
-interface CryptmanException extends Throwable
-{
-}
+interface CryptmanException extends Throwable {}

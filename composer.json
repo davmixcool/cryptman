@@ -33,10 +33,14 @@
   ],
   "require": {
     "php": "^8.2",
-    "ext-openssl": "*"
+    "ext-openssl": "*",
+    "ext-mbstring": "*",
+    "ext-ctype": "*"
   },
   "require-dev": {
-    "pestphp/pest": "^3.0"
+    "laravel/pint": "^1.18",
+    "pestphp/pest": "^3.0",
+    "phpstan/phpstan": "^2.1"
   },
   "suggest": {
     "ext-sodium": "Required for the default xchacha20-poly1305 method (bundled with PHP since 7.2)"
@@ -54,7 +58,16 @@
   "scripts": {
     "test": "pest",
     "corpus:check": "pest --group=corpus",
-    "corpus:regen-check": "php tools/generate-v1-corpus.php --verify-only"
+    "corpus:regen-check": "php tools/generate-v1-corpus.php --verify-only",
+    "analyse": "phpstan analyse",
+    "lint": "pint --test",
+    "fix": "pint",
+    "ci": [
+      "@composer validate --strict --no-check-lock",
+      "@lint",
+      "@analyse",
+      "@test"
+    ]
   },
   "config": {
     "allow-plugins": {

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Davmixcool\Cryptman\Contracts\DriverInterface;
 use Davmixcool\Cryptman\Drivers\LegacyDriver;
 use Davmixcool\Cryptman\Exceptions\InvalidConfigurationException;
 use Davmixcool\Cryptman\Exceptions\LegacyDecryptionException;
@@ -144,6 +145,6 @@ it('has no encrypt method', function () {
 it('does not implement the AEAD driver contract', function () {
     // It is decrypt-only, so satisfying DriverInterface would mean throwing
     // from a method the contract promises works.
-    expect(is_subclass_of(LegacyDriver::class, \Davmixcool\Cryptman\Contracts\DriverInterface::class))
+    expect(is_subclass_of(LegacyDriver::class, DriverInterface::class))
         ->toBeFalse();
 });

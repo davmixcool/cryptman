@@ -38,13 +38,21 @@ final class DriverRegistry
         'chacha20-poly1305' => OpenSslChaCha20Poly1305Driver::class,
     ];
 
-    /** Every method this build knows, available or not. @return list<string> */
+    /**
+     * Every method this build knows, available or not.
+     *
+     * @return list<string>
+     */
     public static function names(): array
     {
         return array_keys(self::DRIVERS);
     }
 
-    /** Methods whose extension is actually present here. @return list<string> */
+    /**
+     * Methods whose extension is actually present here.
+     *
+     * @return list<string>
+     */
     public static function availableNames(): array
     {
         return array_values(array_filter(

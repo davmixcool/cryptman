@@ -50,8 +50,11 @@ final class EncryptedPayload
     public const FORMAT_VERSION = 0x02;
 
     public const ALG_XCHACHA20_POLY1305 = 0x01;
+
     public const ALG_AES_256_GCM = 0x02;
+
     public const ALG_AES_128_GCM = 0x03;
+
     public const ALG_CHACHA20_POLY1305 = 0x04;
 
     public const HEADER_BYTES = 2;
@@ -70,7 +73,7 @@ final class EncryptedPayload
      * forever (PRD §5.5). Adding a row is cheap; changing or removing one
      * strands data.
      *
-     * @var array<int,array{name:string,nonce:int,salt:int}>
+     * @var array<int,array{name:string,nonce:positive-int,salt:int<0,max>}>
      */
     private const GEOMETRY = [
         self::ALG_XCHACHA20_POLY1305 => ['name' => 'xchacha20-poly1305', 'nonce' => 24, 'salt' => 0],
@@ -85,8 +88,7 @@ final class EncryptedPayload
         public readonly string $ciphertext,
         public readonly string $salt = '',
         public readonly int $version = self::FORMAT_VERSION,
-    ) {
-    }
+    ) {}
 
     /** @return list<int> */
     public static function supportedAlgorithms(): array
@@ -119,11 +121,13 @@ final class EncryptedPayload
         ));
     }
 
+    /** @return positive-int */
     public static function nonceBytes(int $algorithmId): int
     {
         return self::geometry($algorithmId)['nonce'];
     }
 
+    /** @return int<0,max> */
     public static function saltBytes(int $algorithmId): int
     {
         return self::geometry($algorithmId)['salt'];
@@ -161,7 +165,7 @@ final class EncryptedPayload
         return $this->header()."\0".$callerData;
     }
 
-    /** @return array{name:string,nonce:int,salt:int} */
+    /** @return array{name:string,nonce:positive-int,salt:int<0,max>} */
     private static function geometry(int $algorithmId): array
     {
         if (! isset(self::GEOMETRY[$algorithmId])) {

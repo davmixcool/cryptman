@@ -1,0 +1,19 @@
+parameters:
+    level: 9
+
+    paths:
+        - src
+
+    # The package supports php ^8.2 and CI tests 8.2/8.3/8.4, but this job runs
+    # on one interpreter. Without a range, PHPStan analyses using whichever
+    # version it happens to be running on, so 8.3/8.4-only behaviour would pass
+    # here and break for a user on 8.2.
+    phpVersion:
+        min: 80200
+        max: 80400
+
+    # Not part of any level. A typed property that no constructor path assigns
+    # is a fatal Error on first read, and in this codebase the properties in
+    # question hold key material. Costs nothing today; guards every future
+    # constructor edit.
+    checkUninitializedProperties: true

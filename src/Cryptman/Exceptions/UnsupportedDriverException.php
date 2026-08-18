@@ -21,6 +21,4 @@ use RuntimeException;
  * Distinct from EnvironmentException: this is fixable by configuration, that
  * one requires rebuilding PHP.
  */
-final class UnsupportedDriverException extends RuntimeException implements CryptmanException
-{
-}
+final class UnsupportedDriverException extends RuntimeException implements CryptmanException {}

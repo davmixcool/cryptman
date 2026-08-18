@@ -13,6 +13,4 @@ use RuntimeException;
  * reaching a v2 install. Old payloads always remain readable (PRD §5.5); the
  * reverse is not possible, and failing loudly is the only safe response.
  */
-final class UnsupportedVersionException extends RuntimeException implements CryptmanException
-{
-}
+final class UnsupportedVersionException extends RuntimeException implements CryptmanException {}

@@ -1,0 +1,84 @@
+name: tests
+
+on:
+  push:
+    branches: [master, 1.x]
+  pull_request:
+
+# This repo has no deploy step and no secrets. Anything a compromised
+# dependency could do with a write token, it should not be able to do.
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }} · ${{ matrix.dependencies }} deps
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+        dependencies: [lowest, highest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          # openssl is a hard requirement; sodium gates the default method;
+          # mbstring and ctype gate the legacy read path. Listed explicitly so a
+          # runner image change cannot silently skip half the drivers.
+          extensions: openssl, sodium, mbstring, ctype
+          coverage: none
+
+      # --no-check-lock because composer.lock is gitignored by design: this
+      # package has zero runtime dependencies, so a lock would only pin dev
+      # tooling.
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-lock
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          dependency-versions: ${{ matrix.dependencies }}
+
+      - name: Run tests
+        run: composer test
+
+  corpus:
+    name: v1 corpus provenance
+    runs-on: ubuntu-latest
+
+    steps:
+      # fetch-depth: 0 is LOAD-BEARING, not a habit.
+      #
+      # tools/generate-v1-corpus.php verifies provenance by running:
+      #     git rev-parse v1.0.0^{}       -> must equal 44ee2023ef5d...
+      #     git show v1.0.0:src/Cipher/*  -> must match pinned blob hashes
+      #
+      # actions/checkout defaults to depth 1 and fetches no tags, so rev-parse
+      # would return empty and the script would abort. A provenance job that
+      # passes on a shallow clone is not checking provenance.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: openssl, mbstring, ctype
+          coverage: none
+
+      # No composer install: the generator loads v1 source out of the git tag
+      # and never touches vendor/autoload.php. Keeping third-party code out of
+      # the provenance check is a feature.
+      - name: Re-derive the frozen v1 corpus from tag v1.0.0
+        run: composer corpus:regen-check

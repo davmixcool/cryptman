@@ -17,6 +17,4 @@ use RuntimeException;
  * Not final: LegacyDecryptionException extends this so that
  * `catch (DecryptionException $e)` covers both the v2 and legacy paths.
  */
-class DecryptionException extends RuntimeException implements CryptmanException
-{
-}
+class DecryptionException extends RuntimeException implements CryptmanException {}

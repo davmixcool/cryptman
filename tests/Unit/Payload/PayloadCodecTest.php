@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Davmixcool\Cryptman\Exceptions\CryptmanException;
 use Davmixcool\Cryptman\Exceptions\InvalidPayloadException;
 use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
 use Davmixcool\Cryptman\Exceptions\UnsupportedVersionException;
@@ -181,7 +182,7 @@ describe('malformed input fails cleanly', function () {
 
             try {
                 $decoder->decode($mutated);
-            } catch (\Davmixcool\Cryptman\Exceptions\CryptmanException) {
+            } catch (CryptmanException) {
                 // The only acceptable outcome besides a successful decode.
             }
         }
@@ -195,7 +196,7 @@ describe('malformed input fails cleanly', function () {
         for ($length = 0; $length < strlen($valid); $length++) {
             try {
                 $decoder->decode(substr($valid, 0, $length));
-            } catch (\Davmixcool\Cryptman\Exceptions\CryptmanException) {
+            } catch (CryptmanException) {
             }
         }
 

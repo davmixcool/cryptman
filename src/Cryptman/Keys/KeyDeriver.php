@@ -16,7 +16,7 @@ use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
  * are part of the payload compatibility contract — changing any of them makes
  * every existing v2 payload undecryptable (PRD §17.2).
  *
- * @see \Davmixcool\Cryptman\Keys\LegacyKeyNormalizer  the frozen v1 path
+ * @see LegacyKeyNormalizer  the frozen v1 path
  */
 final class KeyDeriver
 {

@@ -1,0 +1,55 @@
+name: static analysis
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: static-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  phpstan:
+    name: PHPStan (level 9)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          # One interpreter is enough: phpstan.neon pins the analysis to the
+          # 8.2-8.4 range, so errors reported here are valid for every
+          # supported version regardless of which one this job runs on.
+          php-version: '8.4'
+          extensions: openssl, sodium, mbstring, ctype
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Analyse
+        run: vendor/bin/phpstan analyse --error-format=github --no-progress
+
+  pint:
+    name: Laravel Pint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      # --test only. CI reports style drift; it never rewrites and pushes.
+      - name: Check code style
+        run: vendor/bin/pint --test

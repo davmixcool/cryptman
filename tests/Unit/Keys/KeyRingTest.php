@@ -66,5 +66,5 @@ it('wipes every key in the ring', function () {
 
     (new KeyRing($current, [$old]))->wipe();
 
-    expect($current->material())->toBe('')->and($old->material())->toBe('');
+    expect($current->isWiped())->toBeTrue()->and($old->isWiped())->toBeTrue();
 });

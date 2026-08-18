@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Davmixcool\Cryptman;
+use Davmixcool\Cryptman\Exceptions\DecryptionException;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +79,6 @@ it('is readable with associated data intact', function () {
         expect($cryptman->decrypt($case['payload'], $case['associated_data']))
             ->toBe(base64_decode($case['plaintext_b64']))
             ->and(fn () => $cryptman->decrypt($case['payload'], 'wrong-context'))
-            ->toThrow(\Davmixcool\Cryptman\Exceptions\DecryptionException::class);
+            ->toThrow(DecryptionException::class);
     }
 });

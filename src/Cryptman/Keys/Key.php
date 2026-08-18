@@ -21,7 +21,8 @@ use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
  */
 final class Key
 {
-    private string $material;
+    /** Null once wiped -- see wipe(). */
+    private ?string $material;
 
     private function __construct(string $material, private readonly ?string $id = null)
     {
@@ -66,10 +67,26 @@ final class Key
         return new self($material, $id);
     }
 
-    /** The raw 32-byte key. Do not log, store, or serialize the result. */
+    /**
+     * The raw 32-byte key. Do not log, store, or serialize the result.
+     *
+     * Throws rather than returning an empty string once the key is wiped. An
+     * empty key would otherwise travel onward and fail deep inside a driver as
+     * "requires a 32-byte key, got 0", which says nothing about the real cause.
+     */
     public function material(): string
     {
+        if ($this->material === null) {
+            throw new InvalidKeyException('This key has been wiped and can no longer be used.');
+        }
+
         return $this->material;
+    }
+
+    /** Whether wipe() has been called. */
+    public function isWiped(): bool
+    {
+        return $this->material === null;
     }
 
     /** Optional key identifier, for the key-id support sketched in PRD §21. */
@@ -87,11 +104,15 @@ final class Key
      */
     public function wipe(): void
     {
-        if (function_exists('sodium_memzero')) {
+        if ($this->material !== null && function_exists('sodium_memzero')) {
+            // Passed by reference deliberately: memzero overwrites the string's
+            // own memory. Handing it a copy would separate first and zero the
+            // copy, leaving the secret intact. PHP considers the variable
+            // destroyed afterwards, which is why $material is nullable.
             sodium_memzero($this->material);
         }
 
-        $this->material = '';
+        $this->material = null;
     }
 
     /** Redacted — keeps key material out of var_dump() and print_r(). */

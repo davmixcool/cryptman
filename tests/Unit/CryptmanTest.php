@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Davmixcool\Cryptman;
+use Davmixcool\Cryptman\Exceptions\CryptmanException;
 use Davmixcool\Cryptman\Exceptions\DecryptionException;
+use Davmixcool\Cryptman\Exceptions\EnvironmentException;
 use Davmixcool\Cryptman\Exceptions\InvalidConfigurationException;
 use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
 use Davmixcool\Cryptman\Exceptions\InvalidPayloadException;
@@ -281,7 +283,7 @@ describe('v1 method inference', function () {
 
         foreach ($retired as $method) {
             expect(fn () => cryptman(['method' => $method]))
-                ->toThrow(\Davmixcool\Cryptman\Exceptions\EnvironmentException::class);
+                ->toThrow(EnvironmentException::class);
         }
     });
 
@@ -424,7 +426,7 @@ describe('malformed payloads', function () {
 
             try {
                 cryptman()->decrypt($bad);
-            } catch (\Davmixcool\Cryptman\Exceptions\CryptmanException) {
+            } catch (CryptmanException) {
                 $threw = true;
             }
 

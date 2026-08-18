@@ -19,6 +19,4 @@ use InvalidArgumentException;
  * Separate from InvalidKeyException because the remedy differs: this one is
  * fixed by changing configuration, not by supplying a valid key.
  */
-final class InvalidConfigurationException extends InvalidArgumentException implements CryptmanException
-{
-}
+final class InvalidConfigurationException extends InvalidArgumentException implements CryptmanException {}

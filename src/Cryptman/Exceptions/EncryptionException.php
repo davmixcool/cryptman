@@ -15,6 +15,4 @@ use RuntimeException;
  *
  * Messages must never include plaintext or key material.
  */
-final class EncryptionException extends RuntimeException implements CryptmanException
-{
-}
+final class EncryptionException extends RuntimeException implements CryptmanException {}

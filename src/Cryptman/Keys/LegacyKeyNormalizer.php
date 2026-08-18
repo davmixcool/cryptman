@@ -43,7 +43,7 @@ namespace Davmixcool\Cryptman\Keys;
  * Verified against the frozen 54-fixture corpus in tests/Fixtures, which
  * covers both branches across all four v1 cipher methods.
  *
- * @see \Davmixcool\Cryptman\Keys\KeyDeriver  the v2 path — use that for new data
+ * @see KeyDeriver  the v2 path — use that for new data
  * @see tests/Fixtures/README.md
  */
 final class LegacyKeyNormalizer

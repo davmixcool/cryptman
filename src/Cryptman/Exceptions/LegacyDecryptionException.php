@@ -23,6 +23,4 @@ namespace Davmixcool\Cryptman\Exceptions;
  * probability of an undetected misread (measured ~0.02% false negatives on
  * short values) but cannot eliminate it.
  */
-final class LegacyDecryptionException extends DecryptionException
-{
-}
+final class LegacyDecryptionException extends DecryptionException {}

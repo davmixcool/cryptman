@@ -32,6 +32,16 @@ Three independent provenance checks run on every generation:
 
 The envelope records all three in `source.{tag,commit,blobs}`.
 
+These now run in **CI on every push**, via `composer corpus:regen-check`. That
+job is the only automated verification that `v1.0.0` still resolves to the
+expected commit and that the pinned blobs still match — it replaced a test that
+hashed working-tree copies of the v1 source, which were deleted once
+`LegacyDriver` made them unreachable. The CI job proves strictly more: it
+re-derives 50 fixtures from the verified tag source and byte-compares them.
+
+Note the job requires `fetch-depth: 0`; a shallow checkout has no tags and the
+script aborts rather than passing vacuously.
+
 ## Why the IVs are derived, not random
 
 v1 uses `openssl_random_pseudo_bytes()` for IVs, so its output is

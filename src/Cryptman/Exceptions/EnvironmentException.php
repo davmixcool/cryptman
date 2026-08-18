@@ -14,6 +14,4 @@ use RuntimeException;
  * build itself lacks the primitives — which is why it is separate from
  * UnsupportedDriverException.
  */
-final class EnvironmentException extends RuntimeException implements CryptmanException
-{
-}
+final class EnvironmentException extends RuntimeException implements CryptmanException {}

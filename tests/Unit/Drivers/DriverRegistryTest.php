@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Davmixcool\Cryptman;
 use Davmixcool\Cryptman\Contracts\DriverInterface;
 use Davmixcool\Cryptman\Drivers\DriverRegistry;
 use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
@@ -74,5 +75,5 @@ it('rejects an unknown algorithm id', function () {
 });
 
 it('exposes the same set through the facade', function () {
-    expect(Davmixcool\Cryptman::supportedMethods())->toBe(DriverRegistry::names());
+    expect(Cryptman::supportedMethods())->toBe(DriverRegistry::names());
 });

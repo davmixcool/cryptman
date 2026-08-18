@@ -34,12 +34,22 @@ final class KeyRing
     private readonly array $previous;
 
     /**
-     * @param  list<Key>  $previous  older keys, newest first
+     * $previous is deliberately typed loosely.
+     *
+     * It arrives from user configuration by way of Cryptman::__construct(),
+     * where PHP's type system offers no guarantee about what is in the array,
+     * so every entry is validated at runtime below. Annotating it list<Key>
+     * would be a promise this class cannot keep -- and would make the guard
+     * that keeps the promise look like dead code.
+     *
+     * @param  array<array-key, mixed>  $previous  older keys, newest first
      */
     public function __construct(
         private readonly Key $current,
         array $previous = []
     ) {
+        $validated = [];
+
         foreach ($previous as $index => $key) {
             if (! $key instanceof Key) {
                 throw new InvalidConfigurationException(sprintf(
@@ -49,9 +59,14 @@ final class KeyRing
                     get_debug_type($key)
                 ));
             }
+
+            // Appending inside the guarded loop is what lets the property keep
+            // its list<Key> type: each value is narrowed to Key before it is
+            // collected. It also reindexes, so array_values() is redundant.
+            $validated[] = $key;
         }
 
-        $this->previous = array_values($previous);
+        $this->previous = $validated;
     }
 
     /** The key new payloads are encrypted with. */

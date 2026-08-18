@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Davmixcool\Cryptman\Contracts;
 
+use Davmixcool\Cryptman\Exceptions\DecryptionException;
 use Davmixcool\Cryptman\Payload\EncryptedPayload;
 
 /**
@@ -28,7 +29,7 @@ interface DriverInterface
     /**
      * @param  string  $key  32 bytes of derived key material
      *
-     * @throws \Davmixcool\Cryptman\Exceptions\DecryptionException on tampering or wrong key
+     * @throws DecryptionException on tampering or wrong key
      */
     public function decrypt(EncryptedPayload $payload, string $key, ?string $associatedData = null): string;
 
