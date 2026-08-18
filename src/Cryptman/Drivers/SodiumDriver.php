@@ -16,7 +16,7 @@ use Davmixcool\Cryptman\Payload\EncryptedPayload;
  *
  * Chosen for its 24-byte nonce: random nonces are safe essentially without
  * bound, so no per-message key derivation is needed and no usage ceiling has
- * to be tracked. Compare OpenSslGcmDriver, where a 96-bit nonce forces exactly
+ * to be tracked. Compare OpenSslAes256GcmDriver, where a 96-bit nonce forces exactly
  * that machinery.
  */
 final class SodiumDriver implements DriverInterface

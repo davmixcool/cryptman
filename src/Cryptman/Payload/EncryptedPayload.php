@@ -20,18 +20,24 @@ use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
  * Header, 2 bytes:
  *
  *     byte 0   format version   (0x02)
- *     byte 1   algorithm id     (0x01 xchacha20-poly1305, 0x02 aes-256-gcm)
+ *     byte 1   algorithm id     (see the table below)
  *
  * Per-algorithm geometry — every field length is implied by the algorithm id,
  * so no length prefixes are encoded:
  *
- *     0x01  header(2) || nonce(24) || ct||tag              overhead 42 bytes
- *     0x02  header(2) || salt(32) || nonce(12) || ct||tag  overhead 62 bytes
+ *     0x01  xchacha20-poly1305  header(2) || nonce(24) || ct||tag              42 B
+ *     0x02  aes-256-gcm         header(2) || salt(32) || nonce(12) || ct||tag  62 B
+ *     0x03  aes-128-gcm         header(2) || salt(32) || nonce(12) || ct||tag  62 B
+ *     0x04  chacha20-poly1305   header(2) || salt(32) || nonce(12) || ct||tag  62 B
  *
- * The salt exists only for AES-256-GCM, where it seeds the per-message subkey
- * derivation adopted in §7 to remove the 96-bit nonce's ~2^32 message bound.
- * That is why the AES frame is 20 bytes heavier: a real cost, and a reason to
- * leave the default alone unless AES is specifically required.
+ * The salt is present for every algorithm with a 96-bit nonce, where it seeds
+ * the per-message subkey derivation adopted in §7 to remove the ~2^32 message
+ * bound. That is why those frames are 20 bytes heavier: a real cost, and the
+ * reason the default is the one algorithm that does not need it.
+ *
+ * Note that 0x01 and 0x04 are DIFFERENT algorithms despite similar names.
+ * XChaCha20-Poly1305 (sodium, 192-bit nonce) and ChaCha20-Poly1305 (OpenSSL,
+ * RFC 8439, 96-bit nonce) are not interchangeable on the wire.
  *
  * The `cman2.` prefix stays in cleartext so version detection and legacy
  * discrimination are a prefix comparison requiring no decoding of untrusted
@@ -45,6 +51,8 @@ final class EncryptedPayload
 
     public const ALG_XCHACHA20_POLY1305 = 0x01;
     public const ALG_AES_256_GCM = 0x02;
+    public const ALG_AES_128_GCM = 0x03;
+    public const ALG_CHACHA20_POLY1305 = 0x04;
 
     public const HEADER_BYTES = 2;
 
@@ -54,10 +62,21 @@ final class EncryptedPayload
     /** Salt length for algorithms using per-message subkeys. */
     public const SALT_BYTES = 32;
 
-    /** @var array<int,array{name:string,nonce:int,salt:int}> */
+    /**
+     * The wire format's authority on what each algorithm id means.
+     *
+     * APPEND-ONLY. An id, once published, is a permanent commitment: somewhere
+     * a payload exists carrying it, and that payload must stay decryptable
+     * forever (PRD §5.5). Adding a row is cheap; changing or removing one
+     * strands data.
+     *
+     * @var array<int,array{name:string,nonce:int,salt:int}>
+     */
     private const GEOMETRY = [
         self::ALG_XCHACHA20_POLY1305 => ['name' => 'xchacha20-poly1305', 'nonce' => 24, 'salt' => 0],
         self::ALG_AES_256_GCM => ['name' => 'aes-256-gcm', 'nonce' => 12, 'salt' => self::SALT_BYTES],
+        self::ALG_AES_128_GCM => ['name' => 'aes-128-gcm', 'nonce' => 12, 'salt' => self::SALT_BYTES],
+        self::ALG_CHACHA20_POLY1305 => ['name' => 'chacha20-poly1305', 'nonce' => 12, 'salt' => self::SALT_BYTES],
     ];
 
     public function __construct(

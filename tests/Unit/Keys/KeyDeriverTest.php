@@ -74,3 +74,91 @@ describe('per-message subkeys', function () {
             ->and(KeyDeriver::generateMessageSalt())->not->toBe(KeyDeriver::generateMessageSalt());
     });
 });
+
+describe('per-algorithm domain separation', function () {
+    it('uses a distinct info string per algorithm', function () {
+        $infos = [
+            KeyDeriver::INFO_ENCRYPTION,
+            KeyDeriver::INFO_AES_MESSAGE,
+            KeyDeriver::INFO_AES_128_MESSAGE,
+            KeyDeriver::INFO_CHACHA20_MESSAGE,
+        ];
+
+        expect($infos)->toBe(array_values(array_unique($infos)));
+    });
+
+    it('pins each frozen info string against HKDF directly', function () {
+        // These are payload compatibility contracts. If one of these fails,
+        // every existing payload under that algorithm has become undecryptable.
+        $key = KeyDeriver::deriveEncryptionKey('secret');
+        $salt = str_repeat("\x01", 32);
+
+        foreach ([
+            [KeyDeriver::INFO_AES_MESSAGE, 32],
+            [KeyDeriver::INFO_AES_128_MESSAGE, 16],
+            [KeyDeriver::INFO_CHACHA20_MESSAGE, 32],
+        ] as [$info, $length]) {
+            expect(KeyDeriver::deriveMessageKey($key, $salt, $info, $length))
+                ->toBe(hash_hkdf('sha256', $key, $length, $info, $salt), "info: {$info}");
+        }
+    });
+
+    it('gives each algorithm unrelated message keys for the same key and salt', function () {
+        // Without distinct info strings, HKDF's prefix property would make the
+        // 16-byte output a prefix of the 32-byte one, and chacha20's key
+        // byte-identical to aes-256-gcm's.
+        $key = KeyDeriver::deriveEncryptionKey('secret');
+        $salt = str_repeat("\x01", 32);
+
+        $aes256 = KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_AES_MESSAGE, 32);
+        $aes128 = KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_AES_128_MESSAGE, 16);
+        $chacha = KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_CHACHA20_MESSAGE, 32);
+
+        expect($chacha)->not->toBe($aes256)
+            ->and($aes128)->not->toBe(substr($aes256, 0, 16))
+            ->and(strlen($aes128))->toBe(16);
+    });
+
+    it('demonstrates the prefix property the info strings defend against', function () {
+        // Same info, two lengths: the shorter IS a prefix of the longer.
+        // This is why sharing an info string across algorithms is unacceptable.
+        $key = KeyDeriver::deriveEncryptionKey('secret');
+        $salt = str_repeat("\x02", 32);
+
+        $long = KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_AES_MESSAGE, 32);
+        $short = KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_AES_MESSAGE, 16);
+
+        expect($short)->toBe(substr($long, 0, 16));
+    });
+});
+
+describe('derived key length', function () {
+    it('derives arbitrary lengths', function () {
+        $key = KeyDeriver::deriveEncryptionKey('secret');
+        $salt = KeyDeriver::generateMessageSalt();
+
+        foreach ([16, 24, 32, 64] as $length) {
+            expect(strlen(KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_AES_MESSAGE, $length)))
+                ->toBe($length);
+        }
+    });
+
+    it('rejects a length outside HKDF-SHA256 bounds as our own exception type', function () {
+        $key = KeyDeriver::deriveEncryptionKey('secret');
+        $salt = KeyDeriver::generateMessageSalt();
+
+        foreach ([0, -1, 8161] as $bad) {
+            expect(fn () => KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_AES_MESSAGE, $bad))
+                ->toThrow(InvalidKeyException::class);
+        }
+    });
+
+    it('still defaults to 32 bytes and the AES info string', function () {
+        // Guards the backwards compatibility of every existing call site.
+        $key = KeyDeriver::deriveEncryptionKey('secret');
+        $salt = KeyDeriver::generateMessageSalt();
+
+        expect(KeyDeriver::deriveMessageKey($key, $salt))
+            ->toBe(KeyDeriver::deriveMessageKey($key, $salt, KeyDeriver::INFO_AES_MESSAGE, 32));
+    });
+});

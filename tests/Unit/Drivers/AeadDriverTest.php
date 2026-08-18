@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Davmixcool\Cryptman\Contracts\DriverInterface;
-use Davmixcool\Cryptman\Drivers\OpenSslGcmDriver;
+use Davmixcool\Cryptman\Drivers\OpenSslAes128GcmDriver;
+use Davmixcool\Cryptman\Drivers\OpenSslAes256GcmDriver;
+use Davmixcool\Cryptman\Drivers\OpenSslChaCha20Poly1305Driver;
 use Davmixcool\Cryptman\Drivers\SodiumDriver;
 use Davmixcool\Cryptman\Exceptions\DecryptionException;
 use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
@@ -23,7 +25,16 @@ use Davmixcool\Cryptman\Payload\EncryptedPayload;
 
 dataset('aead-drivers', [
     'xchacha20-poly1305' => [fn () => new SodiumDriver()],
-    'aes-256-gcm' => [fn () => new OpenSslGcmDriver()],
+    'aes-256-gcm' => [fn () => new OpenSslAes256GcmDriver()],
+    'aes-128-gcm' => [fn () => new OpenSslAes128GcmDriver()],
+    'chacha20-poly1305' => [fn () => new OpenSslChaCha20Poly1305Driver()],
+]);
+
+/** The three with 96-bit nonces, which derive a per-message subkey. */
+dataset('subkey-drivers', [
+    'aes-256-gcm' => [fn () => new OpenSslAes256GcmDriver()],
+    'aes-128-gcm' => [fn () => new OpenSslAes128GcmDriver()],
+    'chacha20-poly1305' => [fn () => new OpenSslChaCha20Poly1305Driver()],
 ]);
 
 function aeadKey(string $seed = 'test-key'): string
@@ -121,26 +132,24 @@ describe('tamper detection', function () {
         }
     })->with('aead-drivers');
 
-    it('rejects a header swapped to the other algorithm', function (Closure $make) {
+    it('rejects a header forged to ANY other algorithm', function (Closure $make) {
         // The header is authenticated, so claiming a different algorithm
         // invalidates the payload rather than silently changing interpretation.
+        // Checked against every other registered algorithm, not just one.
         $driver = $make();
         $key = aeadKey();
         $payload = $driver->encrypt('Loose lips sink ships', $key);
 
-        $otherId = $payload->algorithmId === EncryptedPayload::ALG_XCHACHA20_POLY1305
-            ? EncryptedPayload::ALG_AES_256_GCM
-            : EncryptedPayload::ALG_XCHACHA20_POLY1305;
+        foreach (EncryptedPayload::supportedAlgorithms() as $otherId) {
+            if ($otherId === $driver->algorithmId()) {
+                continue;
+            }
 
-        $swapped = new EncryptedPayload(
-            $payload->algorithmId, $payload->nonce, $payload->ciphertext, $payload->salt
-        );
+            $forgedAad = chr(EncryptedPayload::FORMAT_VERSION).chr($otherId);
 
-        // Same driver, but associated data now claims the other algorithm.
-        $forgedAad = chr(EncryptedPayload::FORMAT_VERSION).chr($otherId);
-
-        expect(fn () => $driver->decrypt($swapped, $key, $forgedAad))
-            ->toThrow(DecryptionException::class);
+            expect(fn () => $driver->decrypt($payload, $key, $forgedAad))
+                ->toThrow(DecryptionException::class);
+        }
     })->with('aead-drivers');
 });
 
@@ -203,9 +212,9 @@ describe('associated data', function () {
     })->with('aead-drivers');
 });
 
-describe('AES per-message subkeys', function () {
-    it('uses a fresh salt per message', function () {
-        $driver = new OpenSslGcmDriver();
+describe('per-message subkeys', function () {
+    it('uses a fresh salt per message', function (Closure $make) {
+        $driver = $make();
         $key = aeadKey();
 
         $a = $driver->encrypt('hello', $key);
@@ -213,11 +222,11 @@ describe('AES per-message subkeys', function () {
 
         expect(strlen($a->salt))->toBe(EncryptedPayload::SALT_BYTES)
             ->and($a->salt)->not->toBe($b->salt);
-    });
+    })->with('subkey-drivers');
 
-    it('fails if the salt is altered', function () {
+    it('fails if the salt is altered', function (Closure $make) {
         // The salt selects the message key, so changing it changes the key.
-        $driver = new OpenSslGcmDriver();
+        $driver = $make();
         $key = aeadKey();
         $payload = $driver->encrypt('Loose lips sink ships', $key);
 
@@ -229,13 +238,123 @@ describe('AES per-message subkeys', function () {
         );
 
         expect(fn () => $driver->decrypt($tampered, $key))->toThrow(DecryptionException::class);
-    });
+    })->with('subkey-drivers');
 
-    it('carries no salt for xchacha20, which does not need one', function () {
-        expect((new SodiumDriver())->encrypt('hello', aeadKey())->salt)->toBe('');
-    });
+    it('carries a salt exactly when its geometry says so', function (Closure $make) {
+        $driver = $make();
+
+        expect(strlen($driver->encrypt('hello', aeadKey())->salt))
+            ->toBe(EncryptedPayload::saltBytes($driver->algorithmId()));
+    })->with('aead-drivers');
 });
 
 it('implements the driver contract', function (Closure $make) {
     expect($make())->toBeInstanceOf(DriverInterface::class);
 })->with('aead-drivers');
+
+/*
+|--------------------------------------------------------------------------
+| Construction pinning
+|--------------------------------------------------------------------------
+|
+| PHP's openssl_encrypt SILENTLY TRUNCATES an over-long key: aes-128-gcm handed
+| 32 bytes produces byte-identical output to the same call with the first 16.
+| No warning, no exception. So a wrong messageKeyBytes() passes every
+| round-trip, tamper, AAD and interop test in this file.
+|
+| Worse -- and this was found by deliberately breaking the driver -- it also
+| passes a naive "re-derive and decrypt with raw OpenSSL" test. HKDF output at
+| length 16 is a PREFIX of output at length 32 under identical inputs, which is
+| exactly the property the separate info strings exist to defend against. So
+| the independently-derived 16-byte key equals the truncation of the driver's
+| wrong 32-byte key, and the decrypt succeeds.
+|
+| Two checks are therefore needed, and both are verified to fail when
+| messageKeyBytes() is wrong:
+|
+|   1. the OpenSSL error queue, which records "invalid key length" whenever an
+|      over-long key is passed, even though the call itself succeeds
+|   2. messageKeyBytes() asserted directly by reflection
+|
+| The raw-OpenSSL test below still earns its place: it pins the info string,
+| the AAD assembly and the tag layout. It just cannot pin the key length.
+|
+*/
+
+it('never hands OpenSSL a key of the wrong length', function (Closure $make) {
+    // Behavioural detection of silent truncation. The queue is global, so
+    // drain it first.
+    while (openssl_error_string() !== false) {
+    }
+
+    $make()->encrypt('Loose lips sink ships', aeadKey(), 'ctx');
+
+    $errors = [];
+    while (($error = openssl_error_string()) !== false) {
+        $errors[] = $error;
+    }
+
+    expect(implode('; ', $errors))->not->toContain('invalid key length');
+})->with('subkey-drivers');
+
+it('derives a message key of the length its cipher actually takes', function (
+    Closure $make,
+    int $expectedBytes
+) {
+    $method = new ReflectionMethod($make(), 'messageKeyBytes');
+
+    expect($method->invoke($make()))->toBe($expectedBytes);
+})->with([
+    'aes-256-gcm' => [fn () => new OpenSslAes256GcmDriver(), 32],
+    'aes-128-gcm' => [fn () => new OpenSslAes128GcmDriver(), 16],
+    'chacha20-poly1305' => [fn () => new OpenSslChaCha20Poly1305Driver(), 32],
+]);
+
+it('pins the exact construction: subkey info, AAD assembly and tag layout', function (
+    Closure $make,
+    string $info,
+    int $keyBytes
+) {
+    $driver = $make();
+    $key = aeadKey();
+    $payload = $driver->encrypt('Loose lips sink ships', $key, 'ctx');
+
+    $messageKey = KeyDeriver::deriveMessageKey($key, $payload->salt, $info, $keyBytes);
+
+    // NB: this length assertion is about the test's own derivation, not the
+    // driver's. See the block comment above for why it proves nothing on its own.
+    expect(strlen($messageKey))->toBe($keyBytes);
+
+    $plaintext = openssl_decrypt(
+        substr($payload->ciphertext, 0, -EncryptedPayload::TAG_BYTES),
+        $driver->name(),
+        $messageKey,
+        OPENSSL_RAW_DATA,
+        $payload->nonce,
+        substr($payload->ciphertext, -EncryptedPayload::TAG_BYTES),
+        $payload->associatedData('ctx')
+    );
+
+    expect($plaintext)->toBe('Loose lips sink ships');
+})->with([
+    'aes-256-gcm' => [fn () => new OpenSslAes256GcmDriver(), KeyDeriver::INFO_AES_MESSAGE, 32],
+    'aes-128-gcm' => [fn () => new OpenSslAes128GcmDriver(), KeyDeriver::INFO_AES_128_MESSAGE, 16],
+    'chacha20-poly1305' => [fn () => new OpenSslChaCha20Poly1305Driver(), KeyDeriver::INFO_CHACHA20_MESSAGE, 32],
+]);
+
+it('does not interchange xchacha20-poly1305 and chacha20-poly1305', function () {
+    // One letter apart, different libraries, different nonce sizes, different
+    // algorithm ids. A user WILL assume these are aliases.
+    $key = aeadKey();
+
+    $x = new SodiumDriver();
+    $c = new OpenSslChaCha20Poly1305Driver();
+
+    expect($x->algorithmId())->not->toBe($c->algorithmId())
+        ->and(EncryptedPayload::nonceBytes($x->algorithmId()))->toBe(24)
+        ->and(EncryptedPayload::nonceBytes($c->algorithmId()))->toBe(12);
+
+    // A payload from one cannot be read by the other.
+    expect(fn () => $c->decrypt($x->encrypt('secret', $key), $key))
+        ->toThrow(DecryptionException::class);
+});

@@ -20,21 +20,45 @@ use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
  */
 final class KeyDeriver
 {
-    /** Derived key length in bytes. */
+    /**
+     * Derived key length in bytes, and the default HKDF output length.
+     *
+     * DO NOT CHANGE. This value is simultaneously the HKDF default, the
+     * invariant Key::fromDerivedMaterial() enforces, and what every driver's
+     * guardKey() checks. A driver needing shorter key material derives it
+     * internally by passing an explicit $length below; it does not change this.
+     */
     public const KEY_BYTES = 32;
 
     /** Domain separation for the main encryption key. */
     public const INFO_ENCRYPTION = 'cryptman-v2-encryption';
 
     /**
-     * Domain separation for AES-256-GCM per-message subkeys.
+     * Domain separation for per-message subkeys, one string per algorithm.
      *
-     * AES-GCM's 96-bit nonce carries a ~2^32 message bound under random
-     * nonces, and a collision leaks the authentication subkey rather than
-     * failing gracefully. Deriving a fresh key per message removes the bound
-     * entirely (PRD §7).
+     * Any AEAD with a 96-bit nonce carries a ~2^32 message bound under random
+     * nonces, and a collision is catastrophic rather than graceful -- it leaks
+     * the authentication subkey. Deriving a fresh key per message removes the
+     * bound entirely (PRD §7).
+     *
+     * ------------------------------------------------------------------------
+     *  FROZEN. Each string is part of the payload compatibility contract.
+     * ------------------------------------------------------------------------
+     *
+     * Changing one makes every existing payload under that algorithm
+     * undecryptable (PRD §17.2).
+     *
+     * They are distinct PER ALGORITHM for a specific reason: HKDF output at
+     * length 16 is a byte-for-byte prefix of output at length 32 under
+     * identical (ikm, salt, info). Sharing one string would give aes-128-gcm a
+     * prefix of aes-256-gcm's message key, and chacha20-poly1305 an identical
+     * one -- the same bytes used as two different algorithms' keys.
      */
     public const INFO_AES_MESSAGE = 'cryptman-v2-aesgcm-message';
+
+    public const INFO_AES_128_MESSAGE = 'cryptman-v2-aes128gcm-message';
+
+    public const INFO_CHACHA20_MESSAGE = 'cryptman-v2-chacha20poly1305-message';
 
     /** Salt for per-message AES subkeys, in bytes. */
     public const MESSAGE_SALT_BYTES = 32;
@@ -52,13 +76,23 @@ final class KeyDeriver
     }
 
     /**
-     * Derive a single-use AES-256-GCM message key.
+     * Derive a single-use message key for one payload.
      *
      * Here the salt IS the random per-message value, which is what removes the
      * nonce-collision bound. It is stored in the payload alongside the nonce.
+     *
+     * $length exists for AES-128, which takes a 16-byte key. That shorter value
+     * never crosses a public boundary -- it lives inside one driver method --
+     * so Key and DriverInterface keep their 32-byte contract.
+     *
+     * The defaults preserve every pre-existing two-argument call site exactly.
      */
-    public static function deriveMessageKey(string $encryptionKey, string $salt): string
-    {
+    public static function deriveMessageKey(
+        string $encryptionKey,
+        string $salt,
+        string $info = self::INFO_AES_MESSAGE,
+        int $length = self::KEY_BYTES
+    ): string {
         if (strlen($salt) !== self::MESSAGE_SALT_BYTES) {
             throw new InvalidKeyException(sprintf(
                 'Message salt must be %d bytes, got %d.',
@@ -67,7 +101,7 @@ final class KeyDeriver
             ));
         }
 
-        return self::hkdf($encryptionKey, self::INFO_AES_MESSAGE, $salt);
+        return self::hkdf($encryptionKey, $info, $salt, $length);
     }
 
     /** Generate a fresh per-message salt. */
@@ -76,8 +110,12 @@ final class KeyDeriver
         return random_bytes(self::MESSAGE_SALT_BYTES);
     }
 
-    private static function hkdf(string $ikm, string $info, string $salt): string
-    {
+    private static function hkdf(
+        string $ikm,
+        string $info,
+        string $salt,
+        int $length = self::KEY_BYTES
+    ): string {
         if ($ikm === '') {
             // hash_hkdf() raises a ValueError on empty input key material.
             // Catch it here so callers only ever see Cryptman's own exception
@@ -86,6 +124,15 @@ final class KeyDeriver
             throw new InvalidKeyException('Cannot derive a key from empty key material.');
         }
 
-        return hash_hkdf('sha256', $ikm, self::KEY_BYTES, $info, $salt);
+        // Same reasoning: turn hash_hkdf()'s ValueError into our own type.
+        // 8160 is HKDF-SHA256's maximum output (255 * 32).
+        if ($length < 1 || $length > 8160) {
+            throw new InvalidKeyException(sprintf(
+                'Derived key length must be between 1 and 8160 bytes, got %d.',
+                $length
+            ));
+        }
+
+        return hash_hkdf('sha256', $ikm, $length, $info, $salt);
     }
 }

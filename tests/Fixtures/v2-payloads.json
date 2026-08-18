@@ -1,0 +1,93 @@
+{
+    "$schema_version": 1,
+    "_policy": "FROZEN, APPEND-ONLY. These payloads were produced by a known-good build. They must decrypt forever. If one fails, a derivation parameter, the AAD assembly or the frame layout has changed and every payload in production under that algorithm is now unreadable. Never regenerate to make a test pass.",
+    "generated_at": "2026-08-18T11:38:37Z",
+    "key": "cman_key_KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio",
+    "notes": "The key is deliberately a literal, committed, non-secret test value.",
+    "payloads": [
+        {
+            "id": "xchacha20-poly1305/case-0",
+            "method": "xchacha20-poly1305",
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "associated_data": null,
+            "payload": "cman2.AgEs4NYiHeAGl5OcCX_ZWa1KDPaY4c5JJ_ZN-oX5WMDsuFgk_64GSqc3Dr8TpP60K24mh5vmSumQ3hWGdznS"
+        },
+        {
+            "id": "xchacha20-poly1305/case-1",
+            "method": "xchacha20-poly1305",
+            "plaintext_b64": "",
+            "associated_data": null,
+            "payload": "cman2.AgH_1s8AfiSQAYBbrNpv9mfsRrz0_8DGVd0l5Mvfq2EZDPy5Wyq0_oTt"
+        },
+        {
+            "id": "xchacha20-poly1305/case-2",
+            "method": "xchacha20-poly1305",
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDwn46J",
+            "associated_data": "tenant:42",
+            "payload": "cman2.AgFX-NQly93btx_lgG0ofdtsnP06JujhFYM15oNGA9N8SqysgOLKysjtjOAIDSSturdf_Lh0TsedyP2B"
+        },
+        {
+            "id": "aes-256-gcm/case-0",
+            "method": "aes-256-gcm",
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "associated_data": null,
+            "payload": "cman2.AgJ7cRDrqRCbJHkgIaRQ9LvPobb_WC2THjkU1ID9VFRfGUxX8_SBARQYb1KnvTPoorCh7weWBC6WuIbXc_B26xFScRYA3K4wJNDFazto9UAGwrA"
+        },
+        {
+            "id": "aes-256-gcm/case-1",
+            "method": "aes-256-gcm",
+            "plaintext_b64": "",
+            "associated_data": null,
+            "payload": "cman2.AgK0_slPN0F4xBp7HE7EN-YPTJD89QwgltrTWU4QXqn7uuSYBiCvRd3aZCu3qyNU7OIifM0k3T5dLyDgwMI"
+        },
+        {
+            "id": "aes-256-gcm/case-2",
+            "method": "aes-256-gcm",
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDwn46J",
+            "associated_data": "tenant:42",
+            "payload": "cman2.AgKbXWozsrf4MpsXZ5bEoIs6egEEsx2kOCbRAG9dUVo2aazsLBdwj0ZVmCo1Kd-dBCXHVtAqLbBf3XyPhc2OXpJe87NtChPEj-qMerILuGw"
+        },
+        {
+            "id": "aes-128-gcm/case-0",
+            "method": "aes-128-gcm",
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "associated_data": null,
+            "payload": "cman2.AgP-1zEhDHcBhjhiP0dXm9gf1g-Og179jK7YgiQ6jTDB98aP-9DXl1uRbMyiVKVj-ykqL5l0smpy9IfIWcx50g44FEjtfV8-2zm7YlTPlttwZyM"
+        },
+        {
+            "id": "aes-128-gcm/case-1",
+            "method": "aes-128-gcm",
+            "plaintext_b64": "",
+            "associated_data": null,
+            "payload": "cman2.AgPjWhP0OA0JlS3EBd2UiDhSZwP986MPyms6cHweWG3kZ1_CBEJeeFEd_BLYEQhNcsivrVWw1s6IcbpD3t4"
+        },
+        {
+            "id": "aes-128-gcm/case-2",
+            "method": "aes-128-gcm",
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDwn46J",
+            "associated_data": "tenant:42",
+            "payload": "cman2.AgMOMXI-t3joVI_dkJFpPq2RWDqoTEhPQrssTj6pY3tr1R4D7yDXeRSxjcCaB88KsEffUwi8kLRblEtRtqJh7pjhLP9-6d_QgAe62IBMKRk"
+        },
+        {
+            "id": "chacha20-poly1305/case-0",
+            "method": "chacha20-poly1305",
+            "plaintext_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz",
+            "associated_data": null,
+            "payload": "cman2.AgS_C-gWUFfyP5cLUcgOiTEhnIJPr6MLa1sjrmtTJqUd-6wTCIdEReK4a0bIbR5-PD12pgDhsi7-lXFdffNcBXdJNnaXJDBBGjQhWh7K6C7blGU"
+        },
+        {
+            "id": "chacha20-poly1305/case-1",
+            "method": "chacha20-poly1305",
+            "plaintext_b64": "",
+            "associated_data": null,
+            "payload": "cman2.AgQtvt0z5APrlMa4FuitvlJYX-8RbbKZoZ8YTXTeJ9aJUxqfbg4n2Opdd5s2Ymn_FnwhP1p0VqT-JYTMkY4"
+        },
+        {
+            "id": "chacha20-poly1305/case-2",
+            "method": "chacha20-poly1305",
+            "plaintext_b64": "aMOpbGxvIHfDtnJsZCDwn46J",
+            "associated_data": "tenant:42",
+            "payload": "cman2.AgSyyWAAVDXhYl6sbDvNYdiTL0uC-3rmXvrT-IyDZjiI1Aax23WyU0jWGkyV0vXswFpFygH0R1Z0EWmT8rlreyDwCU4BCMtz3Uw6LyuV8TA"
+        }
+    ]
+}

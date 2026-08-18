@@ -1,18 +1,26 @@
 {
   "name": "davmixcool/cryptman",
   "type": "library",
-  "description": "A Two-way encryption manager using the OpenSSL library",
+  "description": "Dead-simple two-way encryption for PHP, with tamper detection built in.",
   "keywords": [
-    "Crypto",
-    "Encryption",
-    "Decryption",
-    "Cipher",
-    "Decipher",
-    "Encrypter",
-    "Decrypter",
-    "OpenSSL",
-    "SSL",
-    "Secure"
+    "two-way",
+    "two-way-encryption",
+    "encryption",
+    "decryption",
+    "cipher",
+    "decipher",
+    "encrypter",
+    "decrypter",
+    "crypto",
+    "secure",
+    "security",
+    "aead",
+    "authenticated-encryption",
+    "xchacha20",
+    "chacha20-poly1305",
+    "aes-gcm",
+    "libsodium",
+    "sodium"
   ],
   "homepage": "https://github.com/davmixcool/cryptman",
   "license": "MIT",
@@ -24,10 +32,14 @@
     }
   ],
   "require": {
-    "php": "^8.2"
+    "php": "^8.2",
+    "ext-openssl": "*"
   },
   "require-dev": {
     "pestphp/pest": "^3.0"
+  },
+  "suggest": {
+    "ext-sodium": "Required for the default xchacha20-poly1305 method (bundled with PHP since 7.2)"
   },
   "autoload": {
     "psr-4": {

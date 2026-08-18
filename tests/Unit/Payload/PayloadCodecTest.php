@@ -27,7 +27,7 @@ function samplePayload(int $algorithmId = EncryptedPayload::ALG_XCHACHA20_POLY13
     );
 }
 
-it('round-trips both algorithms', function (int $algorithmId) {
+it('round-trips every algorithm', function (int $algorithmId) {
     $payload = samplePayload($algorithmId);
     $decoded = (new PayloadDecoder())->decode((new PayloadEncoder())->encode($payload));
 
@@ -36,10 +36,7 @@ it('round-trips both algorithms', function (int $algorithmId) {
         ->and($decoded->ciphertext)->toBe($payload->ciphertext)
         ->and($decoded->salt)->toBe($payload->salt)
         ->and($decoded->version)->toBe(EncryptedPayload::FORMAT_VERSION);
-})->with([
-    EncryptedPayload::ALG_XCHACHA20_POLY1305,
-    EncryptedPayload::ALG_AES_256_GCM,
-]);
+})->with(fn () => EncryptedPayload::supportedAlgorithms());
 
 it('produces url-safe, copy-paste-safe output', function () {
     $encoded = (new PayloadEncoder())->encode(samplePayload());
@@ -49,28 +46,34 @@ it('produces url-safe, copy-paste-safe output', function () {
 });
 
 it('costs the overhead the PRD specifies', function () {
-    // 42 bytes for XChaCha20, 62 for AES — the 20-byte difference is the
-    // per-message salt, and a real reason to leave the default alone.
-    $encoder = new PayloadEncoder();
+    // Literal expectations on purpose: deriving them from geometry would make
+    // this test tautological. The canonical-comparison below is what forces a
+    // new algorithm to declare its overhead here rather than slip through.
+    $expected = [
+        EncryptedPayload::ALG_XCHACHA20_POLY1305 => 42,
+        EncryptedPayload::ALG_AES_256_GCM => 62,
+        EncryptedPayload::ALG_AES_128_GCM => 62,
+        EncryptedPayload::ALG_CHACHA20_POLY1305 => 62,
+    ];
 
+    expect(array_keys($expected))->toEqualCanonicalizing(EncryptedPayload::supportedAlgorithms());
+
+    $encoder = new PayloadEncoder();
     $decode = fn (string $s): string => (string) KeyGenerator::base64UrlDecode(
         substr($s, strlen(EncryptedPayload::PREFIX))
     );
 
-    $xchacha = new EncryptedPayload(
-        EncryptedPayload::ALG_XCHACHA20_POLY1305,
-        random_bytes(24),
-        random_bytes(EncryptedPayload::TAG_BYTES)
-    );
-    $aes = new EncryptedPayload(
-        EncryptedPayload::ALG_AES_256_GCM,
-        random_bytes(12),
-        random_bytes(EncryptedPayload::TAG_BYTES),
-        random_bytes(32)
-    );
+    foreach ($expected as $id => $overhead) {
+        $payload = new EncryptedPayload(
+            $id,
+            random_bytes(EncryptedPayload::nonceBytes($id)),
+            random_bytes(EncryptedPayload::TAG_BYTES),
+            EncryptedPayload::saltBytes($id) > 0 ? random_bytes(EncryptedPayload::saltBytes($id)) : ''
+        );
 
-    expect(strlen($decode($encoder->encode($xchacha))))->toBe(42)
-        ->and(strlen($decode($encoder->encode($aes))))->toBe(62);
+        expect(strlen($decode($encoder->encode($payload))))
+            ->toBe($overhead, EncryptedPayload::algorithmName($id));
+    }
 });
 
 it('detects v2 payloads without decoding them', function () {
@@ -133,11 +136,19 @@ describe('malformed input fails cleanly', function () {
             ->toThrow(InvalidPayloadException::class);
     });
 
-    it('rejects a truncated frame', function () use ($decoder) {
-        $frame = "\x02\x01".random_bytes(10); // needs 24-byte nonce + 16-byte tag
+    it('rejects a frame one byte short of the minimum, for every algorithm', function () use ($decoder) {
+        foreach (EncryptedPayload::supportedAlgorithms() as $id) {
+            $minimum = EncryptedPayload::HEADER_BYTES
+                + EncryptedPayload::saltBytes($id)
+                + EncryptedPayload::nonceBytes($id)
+                + EncryptedPayload::TAG_BYTES;
 
-        expect(fn () => $decoder->decode(encodeFrame($frame)))
-            ->toThrow(InvalidPayloadException::class);
+            $frame = chr(EncryptedPayload::FORMAT_VERSION).chr($id)
+                .random_bytes($minimum - EncryptedPayload::HEADER_BYTES - 1);
+
+            expect(fn () => $decoder->decode(encodeFrame($frame)))
+                ->toThrow(InvalidPayloadException::class);
+        }
     });
 
     it('reports an unknown format version distinctly', function () use ($decoder) {
@@ -148,7 +159,12 @@ describe('malformed input fails cleanly', function () {
     });
 
     it('reports an unknown algorithm distinctly', function () use ($decoder) {
-        $frame = "\x02\x63".random_bytes(40);
+        // Assert the sentinel is genuinely unregistered rather than assuming
+        // it -- otherwise a future algorithm claiming 0xFF turns this test
+        // green for the wrong reason.
+        expect(EncryptedPayload::isKnownAlgorithm(0xFF))->toBeFalse();
+
+        $frame = "\x02\xFF".random_bytes(40);
 
         expect(fn () => $decoder->decode(encodeFrame($frame)))
             ->toThrow(UnsupportedDriverException::class);

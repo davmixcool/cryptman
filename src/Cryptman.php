@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Davmixcool;
 
 use Davmixcool\Cryptman\Contracts\DriverInterface;
+use Davmixcool\Cryptman\Drivers\DriverRegistry;
 use Davmixcool\Cryptman\Drivers\LegacyDriver;
-use Davmixcool\Cryptman\Drivers\OpenSslGcmDriver;
-use Davmixcool\Cryptman\Drivers\SodiumDriver;
 use Davmixcool\Cryptman\Exceptions\DecryptionException;
 use Davmixcool\Cryptman\Exceptions\EnvironmentException;
 use Davmixcool\Cryptman\Exceptions\InvalidConfigurationException;
@@ -140,6 +139,20 @@ class Cryptman
             method: $inferredLegacyMethod ?? $explicitLegacyMethod ?? LegacyDriver::DEFAULT_METHOD,
             strict: (bool) ($legacyOptions['strict'] ?? true),
         );
+    }
+
+    /**
+     * Every encryption method this build supports.
+     *
+     * All are AEAD and interchangeable at the API level. See the README for
+     * which to choose; the short answer is that if you have no specific reason,
+     * do not set `method` at all.
+     *
+     * @return list<string>
+     */
+    public static function supportedMethods(): array
+    {
+        return DriverRegistry::names();
     }
 
     /** Generate a key safe to store as an environment variable. */
@@ -294,12 +307,14 @@ class Cryptman
 
         $normalised = strtolower($method);
 
-        // v2 algorithms are checked FIRST because aes-256-gcm appears in both
-        // this list and openssl_get_cipher_methods().
-        foreach ([new SodiumDriver(), new OpenSslGcmDriver()] as $driver) {
-            if ($driver->name() === $normalised) {
-                return [$normalised, null];
-            }
+        // v2 methods are checked FIRST. Three of the four -- aes-256-gcm,
+        // aes-128-gcm and chacha20-poly1305 -- also appear in
+        // openssl_get_cipher_methods(), so checking that list first would
+        // silently reclassify a deliberate v2 choice as legacy configuration:
+        // the payload would be written with the default and the user would get
+        // a deprecation notice telling them their own method is a v1 cipher.
+        if (DriverRegistry::supports($normalised)) {
+            return [$normalised, null];
         }
 
         // Anything else OpenSSL recognises could have been configured in v1,
@@ -347,75 +362,69 @@ class Cryptman
 
     private function makeDriver(?string $method): DriverInterface
     {
-        $sodium = new SodiumDriver();
-        $openssl = new OpenSslGcmDriver();
-
         if ($method === null) {
-            if ($sodium->isAvailable()) {
-                return $sodium;
+            $default = DriverRegistry::make(DriverRegistry::DEFAULT_METHOD);
+
+            if ($default->isAvailable()) {
+                return $default;
             }
 
             // No silent fallback. Absence of ext-sodium almost always means a
             // deliberately stripped build, and switching algorithm based on the
             // host makes it impossible to reason about which algorithm protects
             // which record (PRD 35.1).
-            if (! $openssl->isAvailable()) {
+            $available = DriverRegistry::availableNames();
+
+            if ($available === []) {
                 throw new EnvironmentException(
-                    'Neither ext-sodium nor OpenSSL AES-256-GCM is available. Cryptman will not '
-                    .'fall back to an unauthenticated cipher.'
+                    'No authenticated encryption is available: neither ext-sodium nor OpenSSL '
+                    .'AEAD support was found. Cryptman will not fall back to an unauthenticated '
+                    .'cipher.'
                 );
             }
 
-            throw new UnsupportedDriverException(
-                'ext-sodium is not available, so the default xchacha20-poly1305 driver cannot be '
-                ."used. Install ext-sodium, or choose AES explicitly with method => 'aes-256-gcm'."
-            );
+            throw new UnsupportedDriverException(sprintf(
+                'ext-sodium is not available, so the default %s method cannot be used. Install '
+                .'ext-sodium, or choose one of these explicitly: %s.',
+                DriverRegistry::DEFAULT_METHOD,
+                implode(', ', $available)
+            ));
         }
 
-        foreach ([$sodium, $openssl] as $driver) {
-            if ($driver->name() !== $method) {
-                continue;
-            }
-
-            if (! $driver->isAvailable()) {
-                throw new EnvironmentException(sprintf(
-                    'Method "%s" was requested but its extension is not available in this build.',
-                    $method
-                ));
-            }
-
-            return $driver;
+        if (! DriverRegistry::supports($method)) {
+            throw new InvalidConfigurationException(sprintf(
+                'Unknown method "%s". Supported: %s. Cryptman v1 algorithms belong under '
+                .'legacy.method instead.',
+                $method,
+                implode(', ', DriverRegistry::names())
+            ));
         }
 
-        throw new InvalidConfigurationException(sprintf(
-            'Unknown method "%s". Supported: %s. Cryptman v1 algorithms belong under '
-            .'legacy.method instead.',
-            $method,
-            implode(', ', [$sodium->name(), $openssl->name()])
-        ));
+        $driver = DriverRegistry::make($method);
+
+        if (! $driver->isAvailable()) {
+            throw new EnvironmentException(sprintf(
+                'Method "%s" was requested but its extension is not available in this build.',
+                $method
+            ));
+        }
+
+        return $driver;
     }
 
     private function driverForAlgorithm(int $algorithmId): DriverInterface
     {
-        foreach ([new SodiumDriver(), new OpenSslGcmDriver()] as $driver) {
-            if ($driver->algorithmId() !== $algorithmId) {
-                continue;
-            }
+        // Throws UnsupportedDriverException for an id this build does not know.
+        $driver = DriverRegistry::forAlgorithm($algorithmId);
 
-            if (! $driver->isAvailable()) {
-                throw new EnvironmentException(sprintf(
-                    'This payload uses %s, which is not available in this build.',
-                    $driver->name()
-                ));
-            }
-
-            return $driver;
+        if (! $driver->isAvailable()) {
+            throw new EnvironmentException(sprintf(
+                'This payload uses %s, which is not available in this build.',
+                $driver->name()
+            ));
         }
 
-        throw new UnsupportedDriverException(sprintf(
-            'Payload uses unknown algorithm id 0x%02X.',
-            $algorithmId
-        ));
+        return $driver;
     }
 
     /**

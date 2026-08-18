@@ -119,22 +119,44 @@ describe('configuration', function () {
             ->and($cryptman->decrypt($cryptman->encrypt('hello')))->toBe('hello');
     });
 
-    it('rejects an unknown method', function () {
-        expect(fn () => cryptman(['method' => 'rot13']))
-            ->toThrow(InvalidConfigurationException::class);
+    it('rejects an unknown method and lists the real ones', function () {
+        try {
+            cryptman(['method' => 'rot13']);
+            $this->fail('expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            foreach (Cryptman::supportedMethods() as $method) {
+                expect($e->getMessage())->toContain($method);
+            }
+        }
     });
 
     it('rejects non-string options', function () {
         expect(fn () => cryptman(['method' => 42]))->toThrow(InvalidConfigurationException::class);
     });
 
-    it('reads payloads written by the other method', function () {
-        // The algorithm travels in the payload, so a config change does not
-        // strand existing data.
-        $written = cryptman(['method' => 'aes-256-gcm'])->encrypt('hello');
+    it('reads a payload written under any method, whatever method is configured', function () {
+        // The algorithm travels in the payload, so changing `method` affects
+        // new writes only and never strands existing data. Full N x N rather
+        // than "the other one", which stopped being meaningful at four methods.
+        foreach (Cryptman::supportedMethods() as $writer) {
+            $written = cryptman(['method' => $writer])->encrypt("via {$writer}");
 
-        expect(cryptman()->decrypt($written))->toBe('hello');
+            foreach (Cryptman::supportedMethods() as $reader) {
+                expect(cryptman(['method' => $reader])->decrypt($written))
+                    ->toBe("via {$writer}", "{$writer} written, {$reader} configured");
+            }
+        }
     });
+
+    it('round-trips under every supported method', function (string $method) {
+        $cryptman = cryptman(['method' => $method]);
+
+        expect($cryptman->method())->toBe($method)
+            ->and($cryptman->decrypt($cryptman->encrypt('Loose lips sink ships')))
+            ->toBe('Loose lips sink ships')
+            ->and($cryptman->inspect($cryptman->encrypt('x')))
+            ->toMatchArray(['version' => 2, 'driver' => $method]);
+    })->with(fn () => Cryptman::supportedMethods());
 });
 
 describe('v1 method inference', function () {
@@ -216,18 +238,30 @@ describe('v1 method inference', function () {
         }
     });
 
-    it('keeps aes-256-gcm as a v2 method even though OpenSSL also lists it', function () {
-        // Ordering matters: aes-256-gcm is in openssl_get_cipher_methods() AND
-        // is a v2 driver. It must not be mistaken for legacy configuration.
-        $notices = [];
+    it('keeps OpenSSL-named v2 methods out of legacy inference', function (string $method) {
+        // Ordering in resolveMethod() matters: three of the four v2 methods are
+        // ALSO in openssl_get_cipher_methods(). Misclassified, they would emit
+        // a deprecation and silently write with the default instead.
+        //
+        // The dataset is derived, so a fifth colliding name is covered the day
+        // it is added.
         $cryptman = null;
 
-        $notices = capturingDeprecations(function () use (&$cryptman) {
-            $cryptman = cryptman(['method' => 'aes-256-gcm']);
+        $notices = capturingDeprecations(function () use (&$cryptman, $method) {
+            $cryptman = cryptman(['method' => $method]);
         });
 
         expect($notices)->toBeEmpty()
-            ->and($cryptman->method())->toBe('aes-256-gcm');
+            ->and($cryptman->method())->toBe($method);
+    })->with(fn () => array_values(array_intersect(
+        Cryptman::supportedMethods(),
+        openssl_get_cipher_methods()
+    )));
+
+    it('actually has methods that collide with OpenSSL names', function () {
+        // Guards the test above from silently becoming vacuous.
+        expect(array_intersect(Cryptman::supportedMethods(), openssl_get_cipher_methods()))
+            ->not->toBeEmpty();
     });
 
     it('reports a retired cipher as an environment problem, not a config mistake', function () {
