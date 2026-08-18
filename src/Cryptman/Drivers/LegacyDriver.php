@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Davmixcool\Cryptman\Drivers;
 
+use Davmixcool\Cryptman\Exceptions\EnvironmentException;
 use Davmixcool\Cryptman\Exceptions\InvalidConfigurationException;
 use Davmixcool\Cryptman\Exceptions\LegacyDecryptionException;
 use Davmixcool\Cryptman\Keys\LegacyKeyNormalizer;
@@ -34,12 +35,18 @@ final class LegacyDriver
     /** v1's default when no method was configured. */
     public const DEFAULT_METHOD = 'aes-128-ctr';
 
-    /** The methods v1 was realistically used with, per PRD §49. */
-    public const KNOWN_METHODS = [
-        'aes-128-ctr',
-        'aes-256-ctr',
-        'aes-128-cbc',
-        'aes-256-cbc',
+    /**
+     * Cipher families OpenSSL 3 moved into its legacy provider, which is not
+     * loaded by default.
+     *
+     * v1 accepted any cipher openssl_get_cipher_methods() returned, and on
+     * OpenSSL 1.x that included these. Data encrypted with them years ago is
+     * still out there, but a modern build cannot read it without configuration
+     * changes at the OpenSSL level. That is an environment problem with a real
+     * remedy, not a Cryptman configuration mistake, and the error must say so.
+     */
+    private const RETIRED_CIPHER_PREFIXES = [
+        'bf-', 'blowfish', 'rc2-', 'rc4', 'cast5-', 'desx-', 'seed-', 'idea-',
     ];
 
     public function __construct(
@@ -47,12 +54,37 @@ final class LegacyDriver
         private readonly bool $strict = true,
     ) {
         if (! in_array(strtolower($this->method), openssl_get_cipher_methods(), true)) {
+            if (self::isRetiredCipher($this->method)) {
+                throw new EnvironmentException(sprintf(
+                    'Cipher "%s" is not available in this OpenSSL build (%s). It was moved to '
+                    .'the OpenSSL legacy provider, so data encrypted with it cannot be read here. '
+                    .'Enable the legacy provider in your openssl.cnf, or decrypt on a host with '
+                    .'an older OpenSSL, then re-encrypt.',
+                    $this->method,
+                    OPENSSL_VERSION_TEXT
+                ));
+            }
+
             throw new InvalidConfigurationException(sprintf(
                 'Unknown legacy cipher method "%s". v1 defaulted to "%s".',
                 $this->method,
                 self::DEFAULT_METHOD
             ));
         }
+    }
+
+    /** Whether a cipher is one this OpenSSL build has retired rather than never known. */
+    public static function isRetiredCipher(string $method): bool
+    {
+        $method = strtolower($method);
+
+        foreach (self::RETIRED_CIPHER_PREFIXES as $prefix) {
+            if (str_starts_with($method, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function name(): string
@@ -93,6 +125,21 @@ final class LegacyDriver
         if (! ctype_xdigit($ivHex)) {
             throw new LegacyDecryptionException(
                 'Value is not a well-formed Cryptman v1 token: IV prefix is not hexadecimal.'
+            );
+        }
+
+        // v1 produced its body with openssl_encrypt($data, $method, $key, 0, $iv),
+        // and options=0 means base64 output. A body that is not valid base64
+        // therefore cannot have come from v1.
+        //
+        // This check matters more than it looks. Without it, PHP's lenient
+        // base64 handling turns junk into an empty string, openssl_decrypt
+        // happily "decrypts" that to '', and the caller receives '' as though
+        // it were real plaintext -- precisely the silent-wrong-answer failure
+        // this release exists to remove (PRD 28).
+        if (base64_decode($ciphertext, true) === false) {
+            throw new LegacyDecryptionException(
+                'Value is not a well-formed Cryptman v1 token: body is not valid base64.'
             );
         }
 

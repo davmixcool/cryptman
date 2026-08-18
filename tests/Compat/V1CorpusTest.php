@@ -3,23 +3,26 @@
 declare(strict_types=1);
 
 use Davmixcool\Cryptman;
+use Davmixcool\Cryptman\Exceptions\DecryptionException;
+use Davmixcool\Cryptman\Exceptions\LegacyDecryptionException;
 
 /*
 |--------------------------------------------------------------------------
-| v1 compatibility suite
+| v2 compatibility suite
 |--------------------------------------------------------------------------
 |
-| This file is NOT scaffolding. It feeds frozen v1 tokens to whatever
-| Davmixcool\Cryptman the autoloader provides:
+| The frozen corpus records what Cryptman v1 did. This file asserts what v2
+| does with the same inputs, and every place the two differ is declared below
+| as a DELIBERATE divergence with a reason.
 |
-|   today  — that is v1, so this proves the corpus is a faithful record
-|   later  — that is v2, so the same unchanged file becomes v2's compat suite
+| That declaration is the point. Without it the only way to make this suite
+| green would be to weaken assertions until they stopped noticing - which
+| would destroy the guarantee the corpus exists to provide.
 |
-| Only the provenance test below is v1-specific; it is grouped 'v1-only' so it
-| can be retired in one line when v2 rewrites src/.
+| Rule of thumb when something here fails: the corpus is right by definition.
+| Either the code is wrong, or a new divergence needs justifying and adding.
 |
-| The corpus is frozen — read tests/Fixtures/README.md before changing anything
-| here that asserts against it.
+| @see tests/Fixtures/README.md
 |
 */
 
@@ -38,27 +41,87 @@ function corpus(): array
     );
 }
 
-it('reproduces the frozen v1 result', function (array $fixture) {
-    $options = ['key' => base64_decode($fixture['decrypt_with']['key_b64'])];
+/**
+ * Build a v2 Cryptman configured to read a given fixture's legacy data.
+ *
+ * strict:false because the corpus deliberately contains binary and
+ * wrong-key-garbage plaintexts. The UTF-8 guard is exercised separately below;
+ * here we compare against raw v1 behaviour with nothing in the way.
+ *
+ * Note that legacy.key is deliberately NOT subject to the empty-key rejection
+ * in PRD 19.1. That rule is a forward-looking control on the ENCRYPTION key.
+ * Refusing to read data written under a weak or empty key would not improve
+ * anything - the data is already encrypted badly - it would only block the
+ * migration that fixes it. Recovery beats purity here.
+ */
+function cryptmanFor(array $fixture, bool $strict = false): Cryptman
+{
+    return new Cryptman([
+        'key' => 'irrelevant-for-legacy-reads',
+        'legacy' => [
+            'key' => base64_decode($fixture['decrypt_with']['key_b64']),
+            'method' => $fixture['decrypt_with']['method'] ?? 'aes-128-ctr',
+            'strict' => $strict,
+        ],
+    ]);
+}
 
-    // A null method means the option was OMITTED, exercising v1's aes-128-ctr default.
-    if ($fixture['decrypt_with']['method'] !== null) {
-        $options['method'] = $fixture['decrypt_with']['method'];
-    }
-
-    $actual = (new Cryptman($options))->cipher($fixture['token'])->decrypt();
-
+it('still reads every v1 value that v1 itself could read', function (array $fixture) {
+    // ---- DIVERGENCE: failure is an exception, never a falsy return -------
+    // v1 returned bare `false`, which a caller can silently mistake for
+    // plaintext. That is the defect PRD 28 exists to remove.
     if ($fixture['v1_result']['type'] === 'false') {
-        // Strict false, NOT ''. Empty plaintext under CTR returns false while
-        // under CBC it returns '' — a loose assertion would conflate them.
-        expect($actual)->toBeFalse();
+        expect(fn () => cryptmanFor($fixture)->decrypt($fixture['token']))
+            ->toThrow(DecryptionException::class);
 
         return;
     }
 
-    expect($actual)->toBeString()
-        ->and($actual)->toBe(base64_decode($fixture['v1_result']['value_b64']))
-        ->and(mb_check_encoding($actual, 'UTF-8'))->toBe($fixture['v1_result_is_utf8']);
+    // ---- COMPATIBILITY: everything else must be byte-identical ------------
+    expect(cryptmanFor($fixture)->decrypt($fixture['token']))
+        ->toBe(base64_decode($fixture['v1_result']['value_b64']));
+})->with('v1-corpus')->group('corpus');
+
+it('guards values that decrypt to non-UTF-8 when strict mode is on', function (array $fixture) {
+    if ($fixture['v1_result_is_utf8'] !== false) {
+        expect(true)->toBeTrue();
+
+        return;
+    }
+
+    // Every fixture v1 decrypted to garbage - wrong key, misread method, or
+    // genuinely binary plaintext - must trip the guard rather than hand back
+    // plausible-looking nonsense.
+    expect(fn () => cryptmanFor($fixture, strict: true)->decrypt($fixture['token']))
+        ->toThrow(LegacyDecryptionException::class);
+})->with('v1-corpus')->group('corpus');
+
+it('routes v1 values through the legacy path and flags them for upgrade', function (array $fixture) {
+    $cryptman = new Cryptman(['key' => Cryptman::generateKey()]);
+
+    expect($cryptman->version($fixture['token']))->toBe(1)
+        ->and($cryptman->needsUpgrade($fixture['token']))->toBeTrue()
+        ->and($cryptman->inspect($fixture['token']))
+        ->toMatchArray(['version' => 1, 'driver' => null]);
+})->with('v1-corpus')->group('corpus');
+
+it('upgrades readable v1 values to authenticated v2 payloads', function (array $fixture) {
+    if ($fixture['v1_result']['type'] === 'false') {
+        expect(true)->toBeTrue();   // covered by the divergence above
+
+        return;
+    }
+
+    $expected = base64_decode($fixture['v1_result']['value_b64']);
+
+    $cryptman = cryptmanFor($fixture);
+    $upgraded = $cryptman->upgrade($fixture['token']);
+
+    expect($cryptman->needsUpgrade($upgraded))->toBeFalse()
+        ->and($cryptman->version($upgraded))->toBe(2)
+        ->and($cryptman->decrypt($upgraded))->toBe($expected)
+        // Upgrading is idempotent - safe to run across a column repeatedly.
+        ->and($cryptman->upgrade($upgraded))->toBe($upgraded);
 })->with('v1-corpus')->group('corpus');
 
 it('has an unmodified corpus file', function () {
@@ -77,22 +140,16 @@ it('covers every combination the compatibility contract requires', function () {
     expect($ids)->toBe(array_values(array_unique($ids)), 'fixture ids must be unique')
         ->and($ids)->toBe($sorted, 'fixtures must be sorted by id');
 
-    // All four v1 cipher methods appear.
     $methods = array_unique(array_column(array_column($fixtures, 'encrypt_with'), 'method'));
     foreach (['aes-128-ctr', 'aes-256-ctr', 'aes-128-cbc', 'aes-256-cbc'] as $method) {
         expect($methods)->toContain($method);
     }
 
-    // Both key-normalization branches appear against at least one CTR AND one
-    // CBC method — the PRD 49.2 requirement that is easiest to lose silently.
     foreach (['digest', 'raw'] as $branch) {
         $families = [];
 
         foreach ($fixtures as $fixture) {
-            if ($fixture['key_branch'] !== $branch) {
-                continue;
-            }
-            if ($fixture['encrypt_with']['method'] === null) {
+            if ($fixture['key_branch'] !== $branch || $fixture['encrypt_with']['method'] === null) {
                 continue;
             }
             $families[] = str_contains($fixture['encrypt_with']['method'], 'ctr') ? 'ctr' : 'cbc';
@@ -104,7 +161,6 @@ it('covers every combination the compatibility contract requires', function () {
             ->toBeTrue("key branch '{$branch}' must appear against a CBC method");
     }
 
-    // The two keys that silently switch branch.
     $keys = array_column(array_column($fixtures, 'encrypt_with'), 'key_b64');
 
     expect(in_array(base64_encode("caf\xc3\xa9"), $keys, true))
@@ -112,7 +168,6 @@ it('covers every combination the compatibility contract requires', function () {
         ->and(in_array(base64_encode("abc\x00def"), $keys, true))
         ->toBeTrue('the NUL-containing key must appear');
 
-    // Every plaintext shape.
     $plaintexts = array_map('base64_decode', array_column($fixtures, 'plaintext_b64'));
     $lengths = array_map('strlen', $plaintexts);
 
@@ -137,14 +192,12 @@ it('covers every combination the compatibility contract requires', function () {
     expect($hasUtf8)->toBeTrue('a multi-byte UTF-8 plaintext must appear')
         ->and($hasBinary)->toBeTrue('a binary plaintext must appear');
 
-    // The two behaviours that justify AEAD in v2 must be recorded as data.
     $falses = array_filter($fixtures, fn (array $f): bool => $f['v1_result']['type'] === 'false');
     $garbage = array_filter($fixtures, fn (array $f): bool => $f['v1_result_is_utf8'] === false);
 
     expect($falses)->not->toBeEmpty('at least one fixture must return strict false')
         ->and($garbage)->not->toBeEmpty('at least one fixture must return non-UTF-8 garbage');
 
-    // Wrong-key behaviour, split by family: CTR cannot fail, CBC usually does.
     $ctrWrongKey = array_filter($fixtures, fn (array $f): bool => str_starts_with($f['id'], 'neg/wrong-key-ctr/'));
     $cbcWrongKey = array_filter($fixtures, fn (array $f): bool => str_starts_with($f['id'], 'neg/wrong-key-cbc/'));
 
@@ -161,10 +214,18 @@ it('covers every combination the compatibility contract requires', function () {
     }
 })->group('corpus');
 
-it('is running against released v1 source', function () {
+it('still ships the frozen v1 cipher classes unmodified', function () {
+    // src/Cryptman.php was rewritten for v2, so it is no longer pinned here -
+    // that is the expected end of the 'v1-only' provenance check. The three
+    // Cipher/ classes remain frozen reference code and are still verified
+    // against the blob hashes recorded in the corpus envelope.
     $blobs = corpus()['source']['blobs'];
 
     foreach ($blobs as $path => $expected) {
+        if ($path === 'src/Cryptman.php') {
+            continue;
+        }
+
         $full = __DIR__.'/../../'.$path;
 
         expect($full)->toBeReadableFile();
@@ -172,8 +233,7 @@ it('is running against released v1 source', function () {
         $contents = (string) file_get_contents($full);
 
         // Reproduces `git hash-object` with no git dependency.
-        $actual = sha1('blob '.strlen($contents)."\0".$contents);
-
-        expect($actual)->toBe($expected, "{$path} differs from the v1.0.0 release");
+        expect(sha1('blob '.strlen($contents)."\0".$contents))
+            ->toBe($expected, "{$path} differs from the v1.0.0 release");
     }
-})->group('v1-only');
+})->group('corpus');
