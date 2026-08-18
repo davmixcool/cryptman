@@ -1,0 +1,158 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Davmixcool\Cryptman\Payload;
+
+use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
+
+/**
+ * A decoded Cryptman v2 payload, and the single source of truth for the wire
+ * format (PRD §13.1).
+ *
+ * The format is a compact binary frame, not encoded JSON. The primary use case
+ * is encrypted database columns, where a JSON envelope would cost 60-80 bytes
+ * of constant overhead per value before the ciphertext is counted — a heavy
+ * tax on a column holding short secrets like API tokens.
+ *
+ *     cman2.<base64url( header || salt? || nonce || ciphertext_with_tag )>
+ *
+ * Header, 2 bytes:
+ *
+ *     byte 0   format version   (0x02)
+ *     byte 1   algorithm id     (0x01 xchacha20-poly1305, 0x02 aes-256-gcm)
+ *
+ * Per-algorithm geometry — every field length is implied by the algorithm id,
+ * so no length prefixes are encoded:
+ *
+ *     0x01  header(2) || nonce(24) || ct||tag              overhead 42 bytes
+ *     0x02  header(2) || salt(32) || nonce(12) || ct||tag  overhead 62 bytes
+ *
+ * The salt exists only for AES-256-GCM, where it seeds the per-message subkey
+ * derivation adopted in §7 to remove the 96-bit nonce's ~2^32 message bound.
+ * That is why the AES frame is 20 bytes heavier: a real cost, and a reason to
+ * leave the default alone unless AES is specifically required.
+ *
+ * The `cman2.` prefix stays in cleartext so version detection and legacy
+ * discrimination are a prefix comparison requiring no decoding of untrusted
+ * input.
+ */
+final class EncryptedPayload
+{
+    public const PREFIX = 'cman2.';
+
+    public const FORMAT_VERSION = 0x02;
+
+    public const ALG_XCHACHA20_POLY1305 = 0x01;
+    public const ALG_AES_256_GCM = 0x02;
+
+    public const HEADER_BYTES = 2;
+
+    /** Poly1305 and GCM both produce a 16-byte tag. */
+    public const TAG_BYTES = 16;
+
+    /** Salt length for algorithms using per-message subkeys. */
+    public const SALT_BYTES = 32;
+
+    /** @var array<int,array{name:string,nonce:int,salt:int}> */
+    private const GEOMETRY = [
+        self::ALG_XCHACHA20_POLY1305 => ['name' => 'xchacha20-poly1305', 'nonce' => 24, 'salt' => 0],
+        self::ALG_AES_256_GCM => ['name' => 'aes-256-gcm', 'nonce' => 12, 'salt' => self::SALT_BYTES],
+    ];
+
+    public function __construct(
+        public readonly int $algorithmId,
+        public readonly string $nonce,
+        public readonly string $ciphertext,
+        public readonly string $salt = '',
+        public readonly int $version = self::FORMAT_VERSION,
+    ) {
+    }
+
+    /** @return list<int> */
+    public static function supportedAlgorithms(): array
+    {
+        return array_keys(self::GEOMETRY);
+    }
+
+    public static function isKnownAlgorithm(int $algorithmId): bool
+    {
+        return isset(self::GEOMETRY[$algorithmId]);
+    }
+
+    public static function algorithmName(int $algorithmId): string
+    {
+        return self::geometry($algorithmId)['name'];
+    }
+
+    public static function algorithmId(string $name): int
+    {
+        foreach (self::GEOMETRY as $id => $spec) {
+            if ($spec['name'] === $name) {
+                return $id;
+            }
+        }
+
+        throw new UnsupportedDriverException(sprintf(
+            'Unknown algorithm "%s". Supported: %s.',
+            $name,
+            implode(', ', array_column(self::GEOMETRY, 'name'))
+        ));
+    }
+
+    public static function nonceBytes(int $algorithmId): int
+    {
+        return self::geometry($algorithmId)['nonce'];
+    }
+
+    public static function saltBytes(int $algorithmId): int
+    {
+        return self::geometry($algorithmId)['salt'];
+    }
+
+    public function name(): string
+    {
+        return self::algorithmName($this->algorithmId);
+    }
+
+    /** The 2-byte header, which is also the authenticated associated data. */
+    public function header(): string
+    {
+        return chr($this->version).chr($this->algorithmId);
+    }
+
+    /**
+     * Associated data for the AEAD call.
+     *
+     * The header is always authenticated, so version and algorithm cannot be
+     * altered independently of the ciphertext (PRD §13.2). Caller-supplied
+     * associated data is appended after a 0x00 separator, which prevents
+     * ambiguity between the two components.
+     *
+     * An empty string is treated as no associated data. Distinguishing the two
+     * would mean encrypt($d) and encrypt($d, '') produced mutually
+     * undecryptable payloads, which is a footgun with no use case.
+     */
+    public function associatedData(?string $callerData = null): string
+    {
+        if ($callerData === null || $callerData === '') {
+            return $this->header();
+        }
+
+        return $this->header()."\0".$callerData;
+    }
+
+    /** @return array{name:string,nonce:int,salt:int} */
+    private static function geometry(int $algorithmId): array
+    {
+        if (! isset(self::GEOMETRY[$algorithmId])) {
+            throw new UnsupportedDriverException(sprintf(
+                'Unknown algorithm id 0x%02X. This payload may have been written by a newer '
+                .'version of Cryptman.',
+                $algorithmId
+            ));
+        }
+
+        return self::GEOMETRY[$algorithmId];
+    }
+}
