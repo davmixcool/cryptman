@@ -29,6 +29,12 @@ jobs:
           php-version: '8.4'
           extensions: openssl, sodium, mbstring, ctype
           coverage: none
+          # PHPStan's parallel workers exhaust a stock 128M limit and die inside
+          # their own phar, reporting a confusing "severe error" that looks like
+          # a finding in this codebase. Verified in a container: 128M fails,
+          # 256M is enough. setup-php usually defaults CLI memory to -1, but
+          # relying on that leaves the job one action-default away from flaking.
+          ini-values: memory_limit=-1
 
       - uses: ramsey/composer-install@v3
 
