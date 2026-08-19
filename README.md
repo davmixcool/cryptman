@@ -118,6 +118,7 @@ Keys are read from the environment, never from arguments. See
 * [Command line](docs/cli.md) — the `cryptman` binary: key generation,
   inspection, and bulk re-encryption
 * [Security](docs/security.md) — threat model, and what not to use this for
+* [Changelog](CHANGELOG.md) — what changed in each release
 
 ### Maintainers
 
