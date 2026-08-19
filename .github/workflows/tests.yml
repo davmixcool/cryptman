@@ -26,7 +26,7 @@ jobs:
         dependencies: [lowest, highest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -45,7 +45,7 @@ jobs:
         run: composer validate --strict --no-check-lock
 
       - name: Install dependencies
-        uses: ramsey/composer-install@v3
+        uses: ramsey/composer-install@v4
         with:
           dependency-versions: ${{ matrix.dependencies }}
 
@@ -66,7 +66,7 @@ jobs:
       # actions/checkout defaults to depth 1 and fetches no tags, so rev-parse
       # would return empty and the script would abort. A provenance job that
       # passes on a shallow clone is not checking provenance.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 

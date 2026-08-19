@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -36,7 +36,7 @@ jobs:
           # relying on that leaves the job one action-default away from flaking.
           ini-values: memory_limit=-1
 
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
 
       - name: Analyse
         run: vendor/bin/phpstan analyse --error-format=github --no-progress
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -54,7 +54,7 @@ jobs:
           php-version: '8.4'
           coverage: none
 
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
 
       # --test only. CI reports style drift; it never rewrites and pushes.
       - name: Check code style
