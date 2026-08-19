@@ -132,6 +132,35 @@ describe('configuration', function () {
         }
     });
 
+    it('rejects a non-boolean legacy.strict', function () {
+        // (bool) 'false' is TRUE, so a raw cast here would silently flip the
+        // guard on for anyone threading config through from a string source --
+        // an env var, a CLI flag, an ini file.
+        foreach (['false', 'true', 1, 0] as $notABool) {
+            expect(fn () => cryptman(['legacy' => ['strict' => $notABool]]))
+                ->toThrow(InvalidConfigurationException::class);
+        }
+
+        expect(cryptman(['legacy' => ['strict' => false]])->method())->toBe('xchacha20-poly1305')
+            ->and(cryptman(['legacy' => ['strict' => true]])->method())->toBe('xchacha20-poly1305');
+    });
+
+    it('treats a null legacy.strict as absent, like every other option', function () {
+        // isset() is false for null, so null falls through to the default. That
+        // is how `key`, `method` and the rest already behave; making `strict`
+        // the one option that rejects null would be a surprise, not a guard.
+        expect(cryptman(['legacy' => ['strict' => null]])->method())->toBe('xchacha20-poly1305');
+    });
+
+    it('says why a string is not a boolean', function () {
+        try {
+            cryptman(['legacy' => ['strict' => 'false']]);
+            $this->fail('expected InvalidConfigurationException');
+        } catch (InvalidConfigurationException $e) {
+            expect($e->getMessage())->toContain('not a boolean');
+        }
+    });
+
     it('rejects non-string options', function () {
         expect(fn () => cryptman(['method' => 42]))->toThrow(InvalidConfigurationException::class);
     });
@@ -350,6 +379,31 @@ describe('migration helpers', function () {
         expect($inspected)->toMatchArray(['version' => 2, 'driver' => 'xchacha20-poly1305'])
             ->and(implode('', array_map(strval(...), array_filter($inspected))))
             ->not->toContain('super-secret-plaintext');
+    });
+
+    it('describes a payload with no instance and no key', function () {
+        // The point of the static: describing a payload needs neither key
+        // material nor a driver, so it must work on a host where constructing
+        // a Cryptman would fail -- e.g. one without ext-sodium.
+        $v2 = cryptman()->encrypt('x');
+
+        expect(Cryptman::describe($v2))
+            ->toBe(['version' => 2, 'driver' => 'xchacha20-poly1305'])
+            ->and(Cryptman::describe('1f73df23a0e10e72df8d0123abcd4567body'))
+            ->toBe(['version' => 1, 'driver' => null]);
+    });
+
+    it('keeps inspect() and describe() in agreement', function (string $method) {
+        $cryptman = cryptman(['method' => $method]);
+        $payload = $cryptman->encrypt('x');
+
+        expect($cryptman->inspect($payload))
+            ->toBe(Cryptman::describe($payload) + ['key_id' => null]);
+    })->with(fn () => Cryptman::supportedMethods());
+
+    it('throws on malformed input rather than inventing a version', function () {
+        expect(fn () => Cryptman::describe('cman2.!!!'))
+            ->toThrow(InvalidPayloadException::class);
     });
 
     it('leaves v2 payloads untouched when upgrading', function () {

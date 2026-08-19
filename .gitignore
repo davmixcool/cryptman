@@ -2,7 +2,6 @@
 /working
 /.vagrant
 /.phpspec
-/bin
 /tests/report
 /ansible
 /.idea

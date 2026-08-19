@@ -55,6 +55,9 @@
       "Davmixcool\\Tests\\": "tests/"
     }
   },
+  "bin": [
+    "bin/cryptman"
+  ],
   "scripts": {
     "test": "pest",
     "corpus:check": "pest --group=corpus",

@@ -15,10 +15,14 @@ new Davmixcool\Cryptman([
     'legacy' => [                 // optional, v1 migration only
         'key'    => $oldV1Key,    // see docs/upgrading.md
         'method' => 'aes-256-cbc',
-        'strict' => true,
+        'strict' => true,    // boolean, not a string
     ],
 ]);
 ```
+
+`legacy.strict` must be a real boolean. A string is rejected rather than cast,
+because `(bool) 'false'` is `true` in PHP — silently the opposite of what was
+written. Convert before you pass it in; the CLI does exactly that.
 
 ## Contents
 
@@ -29,6 +33,7 @@ new Davmixcool\Cryptman([
 - [JSON helpers](#json-helpers)
 - [Exceptions](#exceptions)
 - [Framework integration](#framework-integration)
+- [Command line](#command-line)
 
 ## Keys
 
@@ -42,6 +47,9 @@ Store it as an environment variable:
 ```
 CRYPTMAN_KEY=cman_key_xO7q...
 ```
+
+That is the same variable the `cryptman` binary reads. Keys are never accepted
+as command-line arguments — see [the CLI reference](cli.md).
 
 The `cman_key_` prefix makes the value recognisable in a config file or log,
 and lets Cryptman reject a truncated or corrupted key instead of silently
@@ -197,4 +205,13 @@ but **not yet shipped**; bind it yourself:
 $this->app->singleton(Cryptman::class, fn () => new Cryptman([
     'key' => env('CRYPTMAN_KEY'),
 ]));
+```
+
+## Command line
+
+The package ships a `cryptman` binary for key generation, payload inspection
+and bulk re-encryption. See [the CLI reference](cli.md).
+
+```shell
+php vendor/bin/cryptman key:generate
 ```

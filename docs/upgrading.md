@@ -116,6 +116,41 @@ Lazy migration only upgrades records that are read. Cold rows stay v1
 indefinitely — and those are the ones most likely to be exfiltrated wholesale
 and least likely to be noticed.
 
+## Use the CLI
+
+The package ships a command for this. Export your key, survey first, then run:
+
+```shell
+export CRYPTMAN_KEY='cman_key_...'
+
+# 1. survey — decrypts, reports, writes nothing
+php vendor/bin/cryptman upgrade --dry-run --in=payloads.txt
+
+# 2. re-encrypt
+php vendor/bin/cryptman upgrade --in=payloads.txt --out=upgraded.txt
+```
+
+One payload per line, output in input order, so you can zip results back to
+primary keys by line number. **A row that fails to decrypt is written back as
+its original ciphertext**, so writing the results back is a no-op for failures
+and a botched migration cannot destroy data.
+
+Always dry-run first. It decrypts — which is the point — so it catches a wrong
+`legacy.method` before anything is written. It also reports `v2 unreadable`,
+rows already in v2 format that will not decrypt under your key; **a real run
+never reports those**, because it passes v2 payloads through without reading
+them.
+
+Full reference: [docs/cli.md](cli.md).
+
+## Or write the loop yourself
+
+The CLI cannot serve two cases, and for these the PHP API is the answer:
+
+- **Columns encrypted with associated data.** The CLI has no way to supply the
+  per-row context.
+- **Lazy upgrade on read**, rather than a batch pass.
+
 `upgrade()` decrypts and re-encrypts in one call, and returns v2 payloads
 unchanged, so it is safe to run repeatedly:
 
@@ -146,9 +181,9 @@ if ($cryptman->needsUpgrade($value)) {
 Recommended sequence:
 
 1. Deploy v2 with `legacy` configured
-2. Verify a sample of legacy values decrypt as expected
-3. Re-encrypt in batches
-4. Confirm no `needsUpgrade()` values remain
+2. `cryptman upgrade --dry-run` — expect `failed 0` before going further
+3. `cryptman upgrade --in=… --out=…`, in batches if the column is large
+4. `cryptman upgrade --dry-run` on the result — expect `legacy 0`
 5. **Remove the `legacy` block** — the migration is finished at this point
 
 ### Inspecting without decrypting
@@ -157,6 +192,16 @@ Recommended sequence:
 $cryptman->version($payload);       // 1 or 2
 $cryptman->needsUpgrade($payload);  // bool
 $cryptman->inspect($payload);       // ['version' => 2, 'driver' => '...', 'key_id' => null]
+
+Cryptman::describe($payload);       // ['version' => 2, 'driver' => '...']
+```
+
+`describe()` is static and needs no key, no configuration and no instance —
+useful when you have a payload and nothing else. The `cryptman inspect` command
+is the same thing from a shell:
+
+```shell
+php vendor/bin/cryptman inspect "cman2...."
 ```
 
 ## FAQ

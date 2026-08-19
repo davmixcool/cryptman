@@ -137,7 +137,7 @@ class Cryptman
 
         $this->legacy = new LegacyDriver(
             method: $inferredLegacyMethod ?? $explicitLegacyMethod ?? LegacyDriver::DEFAULT_METHOD,
-            strict: (bool) ($legacyOptions['strict'] ?? true),
+            strict: self::boolOption($legacyOptions, 'strict', true),
         );
     }
 
@@ -255,15 +255,37 @@ class Cryptman
      */
     public function inspect(string $payload): array
     {
-        if (! $this->decoder->looksLikeV2($payload)) {
-            return ['version' => 1, 'driver' => null, 'key_id' => null];
+        return self::describe($payload) + ['key_id' => $this->keys->current()->id()];
+    }
+
+    /**
+     * Describe a payload with no key and no instance.
+     *
+     * inspect() has always documented that nothing about describing a payload
+     * requires key material -- but requiring a Cryptman instance made that
+     * untrue in a way that bites exactly when it matters. The constructor
+     * resolves the default encryption driver, so on a host without ext-sodium
+     * (a supported configuration -- sodium is only a `suggest`) inspecting a
+     * payload would throw UnsupportedDriverException before reading a byte.
+     *
+     * Malformed input still throws. Returning something like ['version' => 0]
+     * for garbage would push the decision onto every caller.
+     *
+     * @return array{version:int,driver:?string}
+     *
+     * @throws InvalidPayloadException malformed v2 frame
+     * @throws Cryptman\Exceptions\UnsupportedVersionException written by a newer Cryptman
+     * @throws UnsupportedDriverException algorithm id this build does not know
+     */
+    public static function describe(string $payload): array
+    {
+        $decoder = new PayloadDecoder();
+
+        if (! $decoder->looksLikeV2($payload)) {
+            return ['version' => 1, 'driver' => null];
         }
 
-        return [
-            'version' => 2,
-            'driver' => $this->decoder->decode($payload)->name(),
-            'key_id' => $this->keys->current()->id(),
-        ];
+        return ['version' => 2, 'driver' => $decoder->decode($payload)->name()];
     }
 
     /** Whether a payload predates the current format and should be re-encrypted. */
@@ -452,6 +474,35 @@ class Cryptman
     private static function stringOption(array $options, string $name, string $default): string
     {
         return isset($options[$name]) ? self::asString($options[$name], $name) : $default;
+    }
+
+    /** @param array<string,mixed> $options */
+    private static function boolOption(array $options, string $name, bool $default): bool
+    {
+        return isset($options[$name]) ? self::asBool($options[$name], $name) : $default;
+    }
+
+    /**
+     * Strictly boolean -- no string coercion, deliberately.
+     *
+     * A plain (bool) cast is a trap here: (bool) 'false' is TRUE, so a caller
+     * threading a config value through from a string source would silently get
+     * the opposite of what they wrote. Accepting 'true'/'false' strings instead
+     * would be worse, because it makes the library's contract depend on
+     * whatever parsing a caller happens to use. Callers convert; this validates.
+     */
+    private static function asBool(mixed $value, string $name): bool
+    {
+        if (! is_bool($value)) {
+            throw new InvalidConfigurationException(sprintf(
+                'Option "%s" must be a boolean, %s given.%s',
+                $name,
+                get_debug_type($value),
+                is_string($value) ? ' Note that a string such as "false" is not a boolean.' : ''
+            ));
+        }
+
+        return $value;
     }
 
     private static function asString(mixed $value, string $name): string

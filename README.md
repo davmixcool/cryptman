@@ -18,6 +18,7 @@ Dead-simple two-way encryption for PHP, with tamper detection built in.
 
 * [Installation](#installation)
 * [Usage](#usage)
+* [Command line](#command-line)
 * [Documentation](#documentation)
 * [Maintainers](#maintainers)
 * [License](#license)
@@ -39,6 +40,7 @@ Simple Usage.
 ```php
 
 	//Generate a key once and store it, e.g. in your .env
+	//(or run: php vendor/bin/cryptman key:generate)
 	$key = Davmixcool\Cryptman::generateKey();
 
 	$cryptman = new Davmixcool\Cryptman([
@@ -90,12 +92,25 @@ The v1 syntax still works too:
 everything v1 wrote. Read [docs/upgrading.md](docs/upgrading.md) first; there
 are two things to check before you deploy.
 
+### Command line
+
+```shell
+php vendor/bin/cryptman key:generate                      # a new key
+php vendor/bin/cryptman inspect "cman2...."               # what is this value?
+php vendor/bin/cryptman upgrade --dry-run --in=rows.txt   # survey a migration
+```
+
+Keys are read from the environment, never from arguments. See
+[docs/cli.md](docs/cli.md).
+
 ### Documentation
 
 * [Configuration](docs/configuration.md) — encryption methods, associated data,
   key rotation, exceptions, framework integration
 * [Upgrading from v1](docs/upgrading.md) — migration checklist, reading v1 data,
   bulk re-encryption
+* [Command line](docs/cli.md) — the `cryptman` binary: key generation,
+  inspection, and bulk re-encryption
 * [Security](docs/security.md) — threat model, and what not to use this for
 
 ### Maintainers
