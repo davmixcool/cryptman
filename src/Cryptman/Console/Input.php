@@ -70,9 +70,13 @@ final class Input
             }
 
             if (! str_starts_with($token, '--')) {
+                // Only the name, never the value. A mistyped `-key=SECRET` would
+                // otherwise copy the secret verbatim into stderr, where a CI log
+                // keeps it long after the process listing that briefly exposed
+                // it has gone. The long-option paths below do the same.
                 throw new UsageException(sprintf(
                     'Unknown option "%s". Cryptman uses long options only, e.g. --dry-run.',
-                    $token
+                    explode('=', $token, 2)[0]
                 ));
             }
 

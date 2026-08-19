@@ -43,6 +43,32 @@ it('rejects short options', function () {
     expect(fn () => parse('upgrade', '-x'))->toThrow(UsageException::class);
 });
 
+it('never echoes an option VALUE in an error, only the name', function () {
+    // A mistyped `-key=SECRET` must not copy the secret into stderr, where a CI
+    // log keeps it long after the process listing that exposed it has gone.
+    // The long-option paths already withheld values; the short-option path did
+    // not, which is the inconsistency this pins.
+    foreach (['-key=SUPERSECRET', '-x=SUPERSECRET'] as $token) {
+        try {
+            parse('upgrade', $token);
+            $this->fail('expected UsageException');
+        } catch (UsageException $e) {
+            expect($e->getMessage())->not->toContain('SUPERSECRET');
+        }
+    }
+
+    // ...and the long-option paths, which is where the correct behaviour
+    // already lived.
+    foreach ([['--kye=SUPERSECRET', []], ['--in=SUPERSECRET', ['dry-run']]] as [$token, $flags]) {
+        try {
+            parse('upgrade', $token)->validate(flags: $flags, options: []);
+            $this->fail('expected UsageException');
+        } catch (UsageException $e) {
+            expect($e->getMessage())->not->toContain('SUPERSECRET');
+        }
+    }
+});
+
 it('rejects a repeated option', function () {
     expect(fn () => parse('upgrade', '--in=a', '--in=b'))->toThrow(UsageException::class);
 });
