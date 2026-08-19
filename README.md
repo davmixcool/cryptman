@@ -4,7 +4,7 @@ Dead-simple two-way encryption for PHP, with tamper detection built in.
 
 [![tests](https://img.shields.io/github/actions/workflow/status/davmixcool/cryptman/tests.yml?branch=master&label=tests)](https://github.com/davmixcool/cryptman/actions/workflows/tests.yml)
 [![Latest Version](https://img.shields.io/packagist/v/davmixcool/cryptman?label=latest)](https://packagist.org/packages/davmixcool/cryptman)
-[![PHP Version](https://img.shields.io/packagist/php-v/davmixcool/cryptman/dev-master?label=php)](https://packagist.org/packages/davmixcool/cryptman)
+[![PHP Version](https://img.shields.io/packagist/php-v/davmixcool/cryptman?label=php)](https://packagist.org/packages/davmixcool/cryptman)
 [![Total Downloads](https://img.shields.io/packagist/dt/davmixcool/cryptman)](https://packagist.org/packages/davmixcool/cryptman)
 [![License](https://img.shields.io/packagist/l/davmixcool/cryptman)](https://github.com/davmixcool/cryptman/blob/master/LICENSE.md)
 

@@ -7,7 +7,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [Unreleased] — 2.0.0
+## [2.0.0] — 2026-08-19
 
 Cryptman v2 replaces the encryption underneath and keeps the API. **Data
 written by v1 is still readable.** Start with [docs/upgrading.md](docs/upgrading.md);
@@ -104,6 +104,6 @@ Final 1.x release. Security warning only; no behaviour changed.
 Initial release. Two-way encryption via OpenSSL, with a configurable cipher
 method.
 
-[Unreleased]: https://github.com/davmixcool/cryptman/compare/v1.1.0...master
+[2.0.0]: https://github.com/davmixcool/cryptman/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/davmixcool/cryptman/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/davmixcool/cryptman/releases/tag/v1.0.0
