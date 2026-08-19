@@ -7,7 +7,7 @@ namespace Davmixcool\Cryptman\Payload;
 use Davmixcool\Cryptman\Keys\KeyGenerator;
 
 /**
- * Serialises an EncryptedPayload to its wire form (PRD §13.1, §14).
+ * Serialises an EncryptedPayload to its wire form.
  *
  * Base64url rather than standard base64 so payloads are safe in URLs, cookies,
  * query strings and filenames without escaping — no +, / or = characters.

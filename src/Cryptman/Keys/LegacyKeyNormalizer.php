@@ -71,7 +71,7 @@ final class LegacyKeyNormalizer
     /**
      * Which branch a given key takes.
      *
-     * Exposed for diagnostics and for the migration tooling in PRD §44.1 —
+     * Exposed for diagnostics and for the migration tooling —
      * "your key takes the raw branch" is the single most useful thing to tell
      * someone whose legacy decryption is producing garbage.
      *

@@ -20,7 +20,7 @@ use Throwable;
  *         // anything this library throws
  *     }
  *
- * Every catch pattern in the PRD still works. `catch (DecryptionException $e)`
+ * Every documented catch pattern still works. `catch (DecryptionException $e)`
  * continues to catch LegacyDecryptionException, because that relationship is
  * real inheritance (see LegacyDecryptionException).
  */

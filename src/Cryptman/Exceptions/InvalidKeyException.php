@@ -11,7 +11,7 @@ use InvalidArgumentException;
  *
  * Unlike Cryptman v1, there is NO default key. v1 fell back to php_uname(),
  * a publicly guessable description of the host, which meant data encrypted
- * without an explicit key was effectively unencrypted (PRD §2.5, §19.1).
+ * without an explicit key was effectively unencrypted.
  *
  * Also raised when a value carries the `cman_key_` prefix but its body does not
  * decode, or decodes to the wrong length — so that a typo becomes an error

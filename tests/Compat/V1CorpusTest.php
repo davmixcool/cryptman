@@ -49,7 +49,7 @@ function corpus(): array
  * here we compare against raw v1 behaviour with nothing in the way.
  *
  * Note that legacy.key is deliberately NOT subject to the empty-key rejection
- * in PRD 19.1. That rule is a forward-looking control on the ENCRYPTION key.
+ * elsewhere. That rule is a forward-looking control on the ENCRYPTION key.
  * Refusing to read data written under a weak or empty key would not improve
  * anything - the data is already encrypted badly - it would only block the
  * migration that fixes it. Recovery beats purity here.
@@ -69,7 +69,7 @@ function cryptmanFor(array $fixture, bool $strict = false): Cryptman
 it('still reads every v1 value that v1 itself could read', function (array $fixture) {
     // ---- DIVERGENCE: failure is an exception, never a falsy return -------
     // v1 returned bare `false`, which a caller can silently mistake for
-    // plaintext. That is the defect PRD 28 exists to remove.
+    // plaintext. That is the defect v2 exists to remove.
     if ($fixture['v1_result']['type'] === 'false') {
         expect(fn () => cryptmanFor($fixture)->decrypt($fixture['token']))
             ->toThrow(DecryptionException::class);

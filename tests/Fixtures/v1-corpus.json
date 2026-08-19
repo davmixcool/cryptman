@@ -235,7 +235,7 @@
                 "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
             },
             "v1_result_is_utf8": true,
-            "notes": "ctype_print(\"\") is FALSE, so an empty key takes the RAW branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this (PRD 19.1)."
+            "notes": "ctype_print(\"\") is FALSE, so an empty key takes the RAW branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this."
         },
         {
             "id": "cbc128/key-nul/pt-short-ascii",
@@ -277,7 +277,7 @@
                 "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
             },
             "v1_result_is_utf8": true,
-            "notes": "ctype_print(\"café\") is FALSE, so an accented passphrase silently takes the RAW key branch (5 bytes) instead of the SHA-256 branch. PRD 17.1."
+            "notes": "ctype_print(\"café\") is FALSE, so an accented passphrase silently takes the RAW key branch (5 bytes) instead of the SHA-256 branch."
         },
         {
             "id": "cbc256/key-ascii-printable/pt-binary",
@@ -633,7 +633,7 @@
                 "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
             },
             "v1_result_is_utf8": true,
-            "notes": "ctype_print(\"\") is FALSE, so an empty key takes the RAW branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this (PRD 19.1)."
+            "notes": "ctype_print(\"\") is FALSE, so an empty key takes the RAW branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this."
         },
         {
             "id": "ctr128/key-nul/pt-short-ascii",
@@ -675,7 +675,7 @@
                 "value_b64": "TG9vc2UgbGlwcyBzaW5rIHNoaXBz"
             },
             "v1_result_is_utf8": true,
-            "notes": "ctype_print(\"café\") is FALSE, so an accented passphrase silently takes the RAW key branch (5 bytes) instead of the SHA-256 branch. PRD 17.1."
+            "notes": "ctype_print(\"café\") is FALSE, so an accented passphrase silently takes the RAW key branch (5 bytes) instead of the SHA-256 branch."
         },
         {
             "id": "ctr256/key-ascii-printable/pt-binary",
@@ -863,7 +863,7 @@
                 "value_b64": "IVKMUdPh9xYZcBQDPLIAhAZpfp/LvTtpxwVwziIA920="
             },
             "v1_result_is_utf8": false,
-            "notes": "PRD 22.1/22.2: CBC token read under the omitted-method default (aes-128-ctr) returns a garbage STRING, not false. The only signal is that the garbage is not valid UTF-8."
+            "notes": "CBC token read under the omitted-method default (aes-128-ctr) returns a garbage STRING, not false. The only signal is that the garbage is not valid UTF-8."
         },
         {
             "id": "neg/cbc-token-read-as-default-ctr/short",
@@ -1025,7 +1025,7 @@
                 "value_b64": "89iAtEKgF85Qh3pUxk440EjiKu7p"
             },
             "v1_result_is_utf8": false,
-            "notes": "PRD 20.1: a wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
+            "notes": "A wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
         },
         {
             "id": "neg/wrong-key-ctr/2",
@@ -1046,7 +1046,7 @@
                 "value_b64": "E4npeIbR+drUMtdK9vVC8lIPWkMu"
             },
             "v1_result_is_utf8": false,
-            "notes": "PRD 20.1: a wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
+            "notes": "A wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
         },
         {
             "id": "neg/wrong-key-ctr/3",
@@ -1067,7 +1067,7 @@
                 "value_b64": "IxYZS81RYEpIU/Wh2qhTwKLVXm9d"
             },
             "v1_result_is_utf8": false,
-            "notes": "PRD 20.1: a wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
+            "notes": "A wrong key under CTR returns a garbage STRING, never false. A key ring cannot tell right from wrong, so trial decryption over previous_keys is unsound for v1 payloads."
         },
         {
             "id": "wild/cbc128/pt-short-ascii",

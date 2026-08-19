@@ -9,7 +9,7 @@ use RuntimeException;
 /**
  * Decryption failed: the payload was modified, the key is wrong, or both.
  *
- * Cryptman never returns false or corrupted plaintext on failure (PRD §28).
+ * Cryptman never returns false or corrupted plaintext on failure.
  * Authentication failure and wrong-key failure are deliberately
  * indistinguishable — reporting which one occurred would tell an attacker
  * whether a guessed key was closer.

@@ -16,7 +16,7 @@ use ReflectionClass;
 use RuntimeException;
 
 /**
- * Bulk re-encryption -- PRD §24.1 step 3 and §44.1.
+ * Bulk re-encryption.
  *
  * Two invariants hold every line of this class together.
  *
@@ -89,7 +89,7 @@ final class UpgradeCommand implements Command
                 try {
                     if ($dryRun) {
                         // A dry run legitimately DECRYPTS. The risk being
-                        // managed is writing, not reading, and §44.1's "how
+                        // managed is writing, not reading, and "how
                         // many fail to decrypt" is unobtainable otherwise -- a
                         // run that only counted needsUpgrade() would report
                         // "26,200 legacy / 0 failed" on a completely wrong

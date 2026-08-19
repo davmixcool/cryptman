@@ -12,7 +12,7 @@ use InvalidArgumentException;
  * Raised for, among others:
  *
  *   - a v1 algorithm in `method` together with a conflicting `legacy.method`,
- *     which is ambiguous about what the old data actually used (PRD §12.1)
+ *     which is ambiguous about what the old data actually used
  *   - an unrecognised `method` value
  *   - a `previous_keys` entry that fails validation
  *

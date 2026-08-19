@@ -200,7 +200,7 @@ describe('reporting', function () {
 
     it('never leaks plaintext onto any stream', function () {
         // The assertion that stops a future "helpful" error message from
-        // regressing PRD 44.1.
+        // regressing that guarantee.
         $sentinel = 'SENTINEL-PLAINTEXT-'.bin2hex(random_bytes(8));
         $file = fixtureFile([v1Token($sentinel)]);
 

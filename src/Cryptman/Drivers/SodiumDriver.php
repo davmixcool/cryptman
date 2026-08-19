@@ -12,7 +12,7 @@ use Davmixcool\Cryptman\Keys\KeyDeriver;
 use Davmixcool\Cryptman\Payload\EncryptedPayload;
 
 /**
- * XChaCha20-Poly1305 via libsodium — the default driver (PRD §7).
+ * XChaCha20-Poly1305 via libsodium — the default driver.
  *
  * Chosen for its 24-byte nonce: random nonces are safe essentially without
  * bound, so no per-message key derivation is needed and no usage ceiling has
@@ -45,7 +45,7 @@ final class SodiumDriver implements DriverInterface
 
         // Built before encrypting so the header is available as associated
         // data — the version and algorithm are authenticated alongside the
-        // ciphertext and cannot be altered independently (PRD §13.2).
+        // ciphertext and cannot be altered independently.
         $payload = new EncryptedPayload(
             algorithmId: $this->algorithmId(),
             nonce: $nonce,

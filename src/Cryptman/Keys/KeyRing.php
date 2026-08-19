@@ -10,7 +10,7 @@ use Davmixcool\Cryptman\Exceptions\InvalidConfigurationException;
  * The current encryption key plus any previous keys still needed for reading.
  *
  * Encryption always uses the current key. Decryption tries the current key
- * first, then each previous key in order (PRD §20).
+ * first, then each previous key in order.
  *
  * ---------------------------------------------------------------------------
  *  This applies to v2 payloads ONLY.
@@ -22,8 +22,7 @@ use Davmixcool\Cryptman\Exceptions\InvalidConfigurationException;
  * v1 payloads have no such property. Their dominant mode is CTR, a stream
  * cipher with no integrity check, where a wrong key returns plaintext-shaped
  * garbage rather than an error — so a key ring cannot tell the right key from
- * the wrong one and would hand back corrupted data as if it had succeeded
- * (PRD §20.1).
+ * the wrong one and would hand back corrupted data as if it had succeeded.
  *
  * The legacy path therefore uses a single designated key and never iterates.
  * Nothing in this class is reachable from it.

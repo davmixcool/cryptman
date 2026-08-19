@@ -14,7 +14,7 @@ use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
  *
  * Parameters are fixed here rather than left to implementation because they
  * are part of the payload compatibility contract — changing any of them makes
- * every existing v2 payload undecryptable (PRD §17.2).
+ * every existing v2 payload undecryptable.
  *
  * @see LegacyKeyNormalizer  the frozen v1 path
  */
@@ -39,14 +39,14 @@ final class KeyDeriver
      * Any AEAD with a 96-bit nonce carries a ~2^32 message bound under random
      * nonces, and a collision is catastrophic rather than graceful -- it leaks
      * the authentication subkey. Deriving a fresh key per message removes the
-     * bound entirely (PRD §7).
+     * bound entirely.
      *
      * ------------------------------------------------------------------------
      *  FROZEN. Each string is part of the payload compatibility contract.
      * ------------------------------------------------------------------------
      *
      * Changing one makes every existing payload under that algorithm
-     * undecryptable (PRD §17.2).
+     * undecryptable.
      *
      * They are distinct PER ALGORITHM for a specific reason: HKDF output at
      * length 16 is a byte-for-byte prefix of output at length 32 under

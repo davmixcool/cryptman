@@ -13,7 +13,7 @@ use Davmixcool\Cryptman\Console\Streams;
 /**
  * Print a new encryption key.
  *
- * PRD §44's "primary useful command". Reads no environment and needs no
+ * The command most people will actually run. Reads no environment and needs no
  * configuration, so it works on a bare host.
  *
  * The key goes to STDOUT and NOTHING else does, so this composes:

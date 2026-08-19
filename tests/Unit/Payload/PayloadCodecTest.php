@@ -46,7 +46,7 @@ it('produces url-safe, copy-paste-safe output', function () {
         ->and($encoded)->toMatch('/^cman2\.[A-Za-z0-9_-]+$/');
 });
 
-it('costs the overhead the PRD specifies', function () {
+it('costs the documented overhead', function () {
     // Literal expectations on purpose: deriving them from geometry would make
     // this test tautological. The canonical-comparison below is what forces a
     // new algorithm to declare its overhead here rather than slip through.
@@ -172,7 +172,7 @@ describe('malformed input fails cleanly', function () {
     });
 
     it('survives arbitrary mutation without ever crashing', function () use ($decoder) {
-        // PRD §51: never crash, never expose plaintext, always fail safely.
+        // Never crash, never expose plaintext, always fail safely.
         $valid = (new PayloadEncoder())->encode(samplePayload());
 
         for ($i = 0; $i < 300; $i++) {

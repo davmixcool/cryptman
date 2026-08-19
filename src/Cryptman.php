@@ -66,7 +66,8 @@ use Davmixcool\Cryptman\Payload\PayloadEncoder;
  * every failure, so it will quietly treat a live secret as an empty value.
  *
  * Upgrade every reader of a shared column before any writer. There is no
- * opt-in to keep writing v1 format; see PRD 23.2 for why that was declined.
+ * opt-in to keep writing v1 format: an escape hatch added for a rollout
+ * window does not get removed after it.
  */
 class Cryptman
 {
@@ -190,7 +191,7 @@ class Cryptman
         if ($value === '') {
             // Structurally nothing, rather than a legacy token that failed to
             // parse. Routing this to the legacy driver would report a
-            // misleading cause (PRD 29).
+            // misleading cause.
             throw new InvalidPayloadException('Cannot decrypt an empty payload.');
         }
 
@@ -228,7 +229,7 @@ class Cryptman
      * Encrypt a structure as JSON.
      *
      * JSON only - never serialize()/unserialize(), which would turn decryption
-     * into an object-injection surface (PRD 39).
+     * into an object-injection surface.
      */
     public function encryptJson(mixed $data, ?string $associatedData = null): string
     {
@@ -317,7 +318,7 @@ class Cryptman
 
     /**
      * Resolve the configured `method` into an encryption algorithm, and
-     * possibly an inferred legacy method (PRD 12.1).
+     * possibly an inferred legacy method.
      *
      * @return array{0:?string,1:?string}
      */
@@ -344,7 +345,7 @@ class Cryptman
         // over a hundred ciphers, not just the four the test corpus covers.
         // Matching against the live list rather than a hardcoded subset is what
         // makes "existing v1 configuration keeps working" true in general
-        // rather than only for the common cases (PRD 62.1).
+        // rather than only for the common cases.
         //
         // A v1 cipher name here is still unambiguous: v2 never encrypts with an
         // unauthenticated cipher, so it can only be describing existing data.
@@ -394,7 +395,7 @@ class Cryptman
             // No silent fallback. Absence of ext-sodium almost always means a
             // deliberately stripped build, and switching algorithm based on the
             // host makes it impossible to reason about which algorithm protects
-            // which record (PRD 35.1).
+            // which record.
             $available = DriverRegistry::availableNames();
 
             if ($available === []) {
@@ -453,7 +454,7 @@ class Cryptman
      * Take the argument if given, otherwise the pending cipher() value.
      *
      * The pending value is cleared either way, so a stale value cannot leak
-     * into a later operation (PRD 9.1).
+     * into a later operation.
      */
     private function resolveInput(?string $argument): string
     {

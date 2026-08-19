@@ -28,7 +28,7 @@ it('reproduces every corpus fixture, positives and negatives alike', function (a
 
     if ($fixture['v1_result']['type'] === 'false') {
         // v1 returned false here. v2 must raise rather than return a falsy
-        // value that a caller could mistake for plaintext (PRD §28).
+        // value that a caller could mistake for plaintext.
         expect(fn () => $driver->decrypt($fixture['token'], $key))
             ->toThrow(LegacyDecryptionException::class);
 
@@ -49,7 +49,7 @@ it('reproduces every corpus fixture, positives and negatives alike', function (a
 })->with('v1-corpus')->group('corpus');
 
 it('never returns false, unlike v1', function () {
-    // PRD §28: a falsy return is silently mistakable for plaintext.
+    // A falsy return is silently mistakable for plaintext.
     $driver = new LegacyDriver();
 
     expect(fn () => $driver->decrypt('not-a-token', 'key'))

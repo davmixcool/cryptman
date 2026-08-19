@@ -12,7 +12,7 @@ use Davmixcool\Cryptman\Keys\KeyDeriver;
 use Davmixcool\Cryptman\Payload\EncryptedPayload;
 
 /**
- * OpenSSL AEAD with a 96-bit nonce and per-message subkeys (PRD §7).
+ * OpenSSL AEAD with a 96-bit nonce and per-message subkeys.
  *
  * Every OpenSSL driver shares exactly one construction:
  *

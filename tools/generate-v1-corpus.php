@@ -334,11 +334,11 @@ namespace {
                 $notes = match ($keyShape) {
                     'key-utf8-cafe' => 'ctype_print("café") is FALSE, so an accented passphrase '
                         .'silently takes the RAW key branch (5 bytes) instead of the SHA-256 '
-                        .'branch. PRD 17.1.',
+                        .'branch.',
                     'key-ascii-1char' => 'Proves key LENGTH is irrelevant on the digest branch: '
                         .'a 1-char key becomes the same 32 bytes as any other printable key.',
                     'key-empty' => 'ctype_print("") is FALSE, so an empty key takes the RAW '
-                        .'branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this (PRD 19.1).',
+                        .'branch at 0 bytes and OpenSSL zero-pads it. v2 rejects this.',
                     default => '',
                 };
 
@@ -373,7 +373,7 @@ namespace {
 
         // Tier D — negatives. decrypt_with deliberately differs from encrypt_with.
 
-        // The PRD 22.1 headline: a CBC token misread under v1's default CTR does
+        // The headline case: a CBC token misread under v1's default CTR does
         // not fail. CTR is a stream cipher; it returns garbage, not false.
         $fixtures[] = makeFixture(
             'neg/cbc-token-read-as-default-ctr/long',
@@ -381,7 +381,7 @@ namespace {
             $plaintexts['pt-short-ascii'],
             ['key' => $printable, 'method' => null],
             null,
-            'PRD 22.1/22.2: CBC token read under the omitted-method default (aes-128-ctr) '
+            'CBC token read under the omitted-method default (aes-128-ctr) '
                 .'returns a garbage STRING, not false. The only signal is that the garbage is '
                 .'not valid UTF-8.'
         );
@@ -408,7 +408,7 @@ namespace {
         );
 
         // Key-ring behaviour, split by family. This is the load-bearing evidence
-        // for PRD 20.1: rotation by trial decryption is unsound for v1 payloads.
+        // rotation by trial decryption is unsound for v1 payloads.
         foreach ([1, 2, 3] as $n) {
             $fixtures[] = makeFixture(
                 "neg/wrong-key-ctr/{$n}",
@@ -416,7 +416,7 @@ namespace {
                 $plaintexts['pt-short-ascii'],
                 ['key' => "wrong-key-{$n}", 'method' => 'aes-128-ctr'],
                 null,
-                'PRD 20.1: a wrong key under CTR returns a garbage STRING, never false. A key '
+                'A wrong key under CTR returns a garbage STRING, never false. A key '
                     .'ring cannot tell right from wrong, so trial decryption over previous_keys '
                     .'is unsound for v1 payloads.'
             );

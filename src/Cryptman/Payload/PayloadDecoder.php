@@ -13,7 +13,7 @@ use Davmixcool\Cryptman\Keys\KeyGenerator;
  *
  * Everything here operates on untrusted input, so the contract is strict: any
  * malformed value produces an exception and never a crash, an uninitialised
- * read, or a partially decoded frame (PRD §51). No plaintext is revealed by
+ * read, or a partially decoded frame. No plaintext is revealed by
  * any failure path, because no decryption has happened yet.
  *
  * Field lengths are implied by the algorithm id rather than encoded, which

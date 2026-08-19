@@ -22,7 +22,7 @@ use Davmixcool\Cryptman\Payload\EncryptedPayload;
  *
  * Adding a method: a driver class, a GEOMETRY row, an ALG_* constant, and a
  * frozen HKDF info string if it uses per-message subkeys. Unauthenticated
- * ciphers are never eligible (PRD §23.1).
+ * ciphers are never eligible.
  *
  * @see EncryptedPayload  the id/name/geometry authority this must agree with
  */

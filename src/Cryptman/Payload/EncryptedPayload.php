@@ -8,7 +8,7 @@ use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
 
 /**
  * A decoded Cryptman v2 payload, and the single source of truth for the wire
- * format (PRD §13.1).
+ * format.
  *
  * The format is a compact binary frame, not encoded JSON. The primary use case
  * is encrypted database columns, where a JSON envelope would cost 60-80 bytes
@@ -31,7 +31,7 @@ use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
  *     0x04  chacha20-poly1305   header(2) || salt(32) || nonce(12) || ct||tag  62 B
  *
  * The salt is present for every algorithm with a 96-bit nonce, where it seeds
- * the per-message subkey derivation adopted in §7 to remove the ~2^32 message
+ * the per-message subkey derivation that removes the ~2^32 message
  * bound. That is why those frames are 20 bytes heavier: a real cost, and the
  * reason the default is the one algorithm that does not need it.
  *
@@ -70,7 +70,7 @@ final class EncryptedPayload
      *
      * APPEND-ONLY. An id, once published, is a permanent commitment: somewhere
      * a payload exists carrying it, and that payload must stay decryptable
-     * forever (PRD §5.5). Adding a row is cheap; changing or removing one
+     * forever. Adding a row is cheap; changing or removing one
      * strands data.
      *
      * @var array<int,array{name:string,nonce:positive-int,salt:int<0,max>}>
@@ -148,7 +148,7 @@ final class EncryptedPayload
      * Associated data for the AEAD call.
      *
      * The header is always authenticated, so version and algorithm cannot be
-     * altered independently of the ciphertext (PRD §13.2). Caller-supplied
+     * altered independently of the ciphertext. Caller-supplied
      * associated data is appended after a 0x00 separator, which prevents
      * ambiguity between the two components.
      *

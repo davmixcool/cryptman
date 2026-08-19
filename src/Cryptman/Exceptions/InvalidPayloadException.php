@@ -17,6 +17,6 @@ use InvalidArgumentException;
  * the wrong key.
  *
  * Decoding untrusted input must never crash the process. Any malformed input
- * produces this exception (PRD §51).
+ * produces this exception.
  */
 final class InvalidPayloadException extends InvalidArgumentException implements CryptmanException {}

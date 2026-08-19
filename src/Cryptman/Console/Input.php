@@ -160,7 +160,7 @@ final class Input
     /**
      * Refuse secrets on the command line, loudly and by name.
      *
-     * PRD §44.1. Falling through to "unknown option" would be a missed
+     * Falling through to "unknown option" would be a missed
      * opportunity: someone who reaches for --key and gets a generic error
      * reaches next for a wrapper script that does the same thing worse.
      */

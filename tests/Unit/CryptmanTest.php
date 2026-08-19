@@ -472,7 +472,7 @@ describe('malformed payloads', function () {
     });
 
     it('never returns false', function () {
-        // PRD 28 - the defect this whole release exists to remove. Every
+        // The defect this whole release exists to remove. Every
         // failure path raises; none returns a value a caller could mistake
         // for plaintext.
         foreach (['', 'garbage', 'cman2.!!!', '1f73df23a0e10e72df8d0123abcd4567x'] as $bad) {

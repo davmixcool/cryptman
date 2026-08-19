@@ -15,7 +15,7 @@ use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
  *
  * The prefix exists so that a key found in an environment file, a paste, or a
  * log is recognisable as a Cryptman key, and so that a malformed one can be
- * rejected instead of being silently treated as a passphrase (PRD §18, §18.1).
+ * rejected instead of being silently treated as a passphrase.
  */
 final class KeyGenerator
 {
@@ -46,7 +46,7 @@ final class KeyGenerator
      * Both paths run HKDF afterwards — the prefix determines only WHAT becomes
      * the IKM, not whether derivation happens. Running HKDF over already
      * uniform material costs one hash and buys a single code path to audit
-     * plus domain separation for every key (PRD §18.1).
+     * plus domain separation for every key.
      *
      * A malformed `cman_key_` value throws rather than falling through to the
      * passphrase path, so a typo cannot silently become a different key.

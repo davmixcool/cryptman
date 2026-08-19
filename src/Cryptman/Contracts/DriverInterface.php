@@ -8,7 +8,7 @@ use Davmixcool\Cryptman\Exceptions\DecryptionException;
 use Davmixcool\Cryptman\Payload\EncryptedPayload;
 
 /**
- * An authenticated encryption driver (PRD §32).
+ * An authenticated encryption driver.
  *
  * Drivers work with raw derived key material rather than Key objects, keeping
  * them at the level of the primitives they wrap. Turning configuration into

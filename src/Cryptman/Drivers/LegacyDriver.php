@@ -10,7 +10,7 @@ use Davmixcool\Cryptman\Exceptions\LegacyDecryptionException;
 use Davmixcool\Cryptman\Keys\LegacyKeyNormalizer;
 
 /**
- * Reads Cryptman v1 tokens. DECRYPT ONLY (PRD §22, §23).
+ * Reads Cryptman v1 tokens. DECRYPT ONLY.
  *
  * Deliberately does not implement DriverInterface. It has no encrypt() — v2
  * never writes unauthenticated ciphertext — and it operates on raw v1 token
@@ -23,9 +23,9 @@ use Davmixcool\Cryptman\Keys\LegacyKeyNormalizer;
  *
  * v1 ciphertext carries no MAC. The UTF-8 guard below is a usability backstop
  * for a misconfigured method, NOT a security control, and it must never be
- * described as one. Measured false-negative rate is ~0.02% on short values
- * (PRD §22.2). This is the argument for completing migration rather than
- * leaving legacy data in place indefinitely.
+ * described as one. Measured false-negative rate is ~0.02% on short values.
+ * This is the argument for completing migration rather than leaving legacy
+ * data in place indefinitely.
  *
  * The cipher method cannot be recovered from a token: all four v1 methods use
  * a 16-byte IV, so the hex prefix does not discriminate. It must be supplied.
@@ -136,7 +136,7 @@ final class LegacyDriver
         // base64 handling turns junk into an empty string, openssl_decrypt
         // happily "decrypts" that to '', and the caller receives '' as though
         // it were real plaintext -- precisely the silent-wrong-answer failure
-        // this release exists to remove (PRD 28).
+        // this release exists to remove.
         if (base64_decode($ciphertext, true) === false) {
             throw new LegacyDecryptionException(
                 'Value is not a well-formed Cryptman v1 token: body is not valid base64.'

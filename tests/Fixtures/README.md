@@ -16,6 +16,20 @@ code — the fixture is the specification, and it is right by definition.
 `tools/generate-v1-corpus.php` refuses to overwrite an existing corpus. That
 guard is deliberate. Do not route around it.
 
+## One documented edit to this file
+
+The `notes` prose of 8 fixtures was edited once, to remove citations to a
+private design document that should not ship in a public package. **No fixture
+data changed** — every token, key, plaintext and result is byte-identical to
+the original derivation, and the four `wild/*` fixtures still carry their
+original random IVs.
+
+That edit was made in place rather than by regenerating, precisely because
+regenerating would have minted new IVs for those four. The identical change was
+applied to the note strings in `tools/generate-v1-corpus.php`, so
+`--verify-only` still reports `identical` — which is the proof that only prose
+moved.
+
 ## Provenance
 
 Generated from tag `v1.0.0` = commit `44ee2023ef5d1b26c64da8317ae93738ebea410d`,

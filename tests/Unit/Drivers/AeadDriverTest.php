@@ -17,7 +17,7 @@ use Davmixcool\Cryptman\Payload\EncryptedPayload;
 | Both AEAD drivers, held to the same contract
 |--------------------------------------------------------------------------
 |
-| Per §7 the two drivers are meant to be interchangeable from the caller's
+| The two drivers are meant to be interchangeable from the caller's
 | perspective, so they are tested through one shared body rather than
 | separately. Anything true of one must be true of the other.
 |
@@ -51,7 +51,7 @@ it('round-trips plaintext', function (Closure $make) {
     $key = aeadKey();
 
     foreach ([
-        '',                                   // empty round-trips to '' (PRD §30)
+        '',                                   // empty round-trips to ''
         'Loose lips sink ships',
         "h\u{e9}llo w\u{f6}rld \u{65e5}\u{672c}\u{8a9e} \u{1f389}",
         random_bytes(1024),

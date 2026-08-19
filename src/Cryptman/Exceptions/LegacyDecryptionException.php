@@ -11,7 +11,7 @@ namespace Davmixcool\Cryptman\Exceptions;
  * Extends DecryptionException so callers who only care that a value did not
  * decrypt can catch the parent, while migration tooling can distinguish the
  * legacy case — which usually means `legacy.method` is wrong, not that the data
- * is bad (PRD §22.2).
+ * is bad.
  *
  * That distinction matters operationally: on this exception the correct
  * response is to STOP and fix configuration, never to re-encrypt the row.

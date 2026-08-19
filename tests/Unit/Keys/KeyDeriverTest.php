@@ -13,7 +13,7 @@ it('derives 32 bytes deterministically', function () {
     expect(strlen($a))->toBe(32)->and($a)->toBe($b);
 });
 
-it('matches HKDF-SHA256 at the parameters fixed in the PRD', function () {
+it('matches HKDF-SHA256 at the parameters this format fixes', function () {
     // Pinned against the primitive directly. These parameters are part of the
     // payload compatibility contract — if this test fails, every existing v2
     // payload has become undecryptable.

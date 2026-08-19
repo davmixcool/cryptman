@@ -17,7 +17,7 @@ use Davmixcool\Cryptman\Exceptions\InvalidKeyException;
  * accidentally send it — var_dump(), print_r(), stack traces, session storage,
  * caches. None of this defends against an attacker who can already read
  * process memory; it defends against the routine leaks that put secrets into
- * log aggregators and crash reporters (PRD §30).
+ * log aggregators and crash reporters.
  */
 final class Key
 {
@@ -33,10 +33,10 @@ final class Key
      * Build a key from whatever the developer configured.
      *
      * Accepts either a generated `cman_key_...` value or an arbitrary
-     * passphrase; both are run through HKDF (PRD §18.1).
+     * passphrase; both are run through HKDF.
      *
      * There is NO default. v1 fell back to php_uname() when no key was given,
-     * which made the data effectively public (PRD §2.5, §19.1).
+     * which made the data effectively public.
      */
     public static function fromUserInput(string $key, ?string $id = null): self
     {
@@ -89,7 +89,7 @@ final class Key
         return $this->material === null;
     }
 
-    /** Optional key identifier, for the key-id support sketched in PRD §21. */
+    /** Optional key identifier, for future key-id support. */
     public function id(): ?string
     {
         return $this->id;
