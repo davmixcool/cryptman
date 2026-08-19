@@ -62,6 +62,7 @@
     "test": "pest",
     "corpus:check": "pest --group=corpus",
     "corpus:regen-check": "php tools/generate-v1-corpus.php --verify-only",
+    "benchmark": "php tools/benchmark.php",
     "analyse": "phpstan analyse --memory-limit=512M",
     "lint": "pint --test",
     "fix": "pint",

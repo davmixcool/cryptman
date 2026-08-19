@@ -61,10 +61,33 @@ abstract class OpenSslAeadDriver implements DriverInterface
         return $this->cipher();
     }
 
+    /**
+     * Cipher availability, memoised for the process.
+     *
+     * openssl_get_cipher_methods() builds an array of ~135 strings and costs
+     * around 30 microseconds. isAvailable() is on the per-operation path --
+     * Cryptman::decrypt() calls it for every payload -- so rebuilding that
+     * array each time made decryption roughly ten times slower than encryption
+     * for the OpenSSL methods, entirely in bookkeeping.
+     *
+     * Caching is safe because the set cannot change within a process: PHP
+     * offers no way to load an OpenSSL provider at runtime.
+     *
+     * @var array<string,bool>|null
+     */
+    private static ?array $available = null;
+
     final public function isAvailable(): bool
     {
-        return extension_loaded('openssl')
-            && in_array($this->cipher(), openssl_get_cipher_methods(), true);
+        if (self::$available === null) {
+            if (! extension_loaded('openssl')) {
+                self::$available = [];
+            } else {
+                self::$available = array_fill_keys(openssl_get_cipher_methods(), true);
+            }
+        }
+
+        return self::$available[$this->cipher()] ?? false;
     }
 
     final public function encrypt(string $plaintext, string $key, ?string $associatedData = null): EncryptedPayload
