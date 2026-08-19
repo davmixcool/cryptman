@@ -96,6 +96,32 @@ message-count limit those nonces would otherwise impose. That derivation is
 what the extra 20 bytes pays for, and why the default — whose 192-bit nonce
 needs none of it — is the smallest.
 
+### Performance, if you are wondering
+
+Measure it on your own hardware rather than trusting a number from someone
+else's:
+
+```shell
+composer benchmark
+```
+
+The shape is more useful than the figures, and it is the opposite of what most
+people assume:
+
+- **At small payloads the default is fastest.** The three 96-bit-nonce methods
+  derive a per-message subkey, a fixed cost of a microsecond or two that the
+  default does not pay. On a 1 KB value that derivation is roughly half the
+  total encrypt time.
+- **At large payloads AES pulls ahead**, often by 2-3x, because AES-NI is
+  hardware. The fixed derivation cost disappears into the noise well before
+  100 KB.
+
+Since this library mostly encrypts short secrets — tokens, keys, credentials —
+the default is the faster choice for the typical workload as well as the
+simpler one. **Do not switch methods for speed** unless you have measured your
+own payload sizes and found it matters; you would be trading the larger nonce
+for a gain you are unlikely to see.
+
 ### Changing `method` is safe
 
 The algorithm travels inside the payload. Changing `method` affects new writes
