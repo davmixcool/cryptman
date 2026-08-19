@@ -1,0 +1,43 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Cryptman CLI entry point.
+ *
+ * DELIBERATELY LOGIC-FREE. This file has no .php extension, so Pint's finder
+ * (*.php only) skips it and phpstan.neon's `paths: [src]` skips it. Rather than
+ * fight both tools, it is kept too small to need either: everything worth
+ * checking lives in src/Cryptman/Console/, which both already cover at level 9.
+ *
+ * If you find yourself adding logic here, push it into Application instead.
+ *
+ * There is no declare(strict_types=1): it must be the first statement in a
+ * file, and when a Composer binary proxy includes this file rather than
+ * executing it, the shebang is emitted as inline output first and the declare
+ * becomes a fatal error. Nothing below needs strict types.
+ */
+
+// Two layouts, most likely first. __DIR__ is the resolved realpath, so this is
+// correct even though Composer installs vendor/bin/cryptman as a symlink:
+//
+//   developing in this package   <pkg>/bin/cryptman            -> ../vendor/autoload.php
+//   installed as a dependency    vendor/davmixcool/cryptman/bin -> ../../../autoload.php
+//
+// Order matters: local first, so someone editing the package gets the
+// package's own autoloader rather than a host application's.
+$autoloaded = false;
+
+foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+        $autoloaded = true;
+        break;
+    }
+}
+
+if (! $autoloaded) {
+    fwrite(STDERR, "FAILED: could not locate vendor/autoload.php. Run `composer install`.\n");
+    exit(1);
+}
+
+exit(Davmixcool\Cryptman\Console\Application::main($_SERVER['argv'] ?? []));
