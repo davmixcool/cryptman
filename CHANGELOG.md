@@ -7,7 +7,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [Unreleased] — 2.1.0
+## [2.1.0] — 2026-08-20
 
 Key ids: an optional label recording *which* key encrypted a value.
 
@@ -177,7 +177,7 @@ Final 1.x release. Security warning only; no behaviour changed.
 Initial release. Two-way encryption via OpenSSL, with a configurable cipher
 method.
 
-[Unreleased]: https://github.com/davmixcool/cryptman/compare/v2.0.0...master
+[2.1.0]: https://github.com/davmixcool/cryptman/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/davmixcool/cryptman/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/davmixcool/cryptman/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/davmixcool/cryptman/releases/tag/v1.0.0
