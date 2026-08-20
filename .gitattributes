@@ -1,0 +1,19 @@
+# Keep the distributed archive to what a consumer actually runs.
+#
+# This affects `composer require` downloads only. Clones are untouched, so
+# development, CI and the test suite always see the full tree.
+
+/.github            export-ignore
+/tests              export-ignore
+/tools              export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/phpunit.xml        export-ignore
+/phpstan.neon       export-ignore
+/pint.json          export-ignore
+
+# The corpus is pinned by a SHA-256 that a test asserts. End-of-line
+# translation on checkout would change the bytes and fail that test on any
+# machine configured with core.autocrlf=true, so hold it byte-exact.
+/tests/Fixtures/v1-corpus.json    -text
+/tests/Fixtures/v1-corpus.sha256  -text
