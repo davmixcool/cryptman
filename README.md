@@ -14,9 +14,10 @@ Dead-simple two-way encryption for PHP, with tamper detection built in.
 - `ext-openssl`, and `ext-sodium` for the default method
 
 > **Still on PHP 8.1 or older?** Composer resolves to `1.x` for you — nothing
-> breaks and you need to change nothing. 1.x is maintenance-only, so the one
-> thing worth doing is making sure you pass an explicit `key` (see the warning
-> below); that fix works on 1.x today and needs no upgrade.
+> breaks and you need to change nothing. 1.x is maintenance-only and receives
+> security fixes until **19 August 2027** (see [SECURITY.md](SECURITY.md)), so
+> the one thing worth doing is making sure you pass an explicit `key` (see the
+> warning below); that fix works on 1.x today and needs no upgrade.
 >
 > To pin it deliberately: `composer require davmixcool/cryptman:^1.0`
 
