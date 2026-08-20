@@ -24,11 +24,16 @@ A Two-way encryption manager using the OpenSSL library
 > in 2.0. If you have data encrypted without an explicit key, treat it as
 > compromised and re-encrypt it.
 >
-> ### 1.x is in maintenance
+> ### 📅 1.x support ends 19 August 2027
 >
-> 1.x receives security fixes only. New work happens on 2.x, which replaces the
-> unauthenticated ciphers below with authenticated encryption
-> (XChaCha20-Poly1305) and can still decrypt data written by 1.x.
+> Cryptman 2.0 was released on 19 August 2026. 1.x receives **security fixes
+> only** until 19 August 2027, and nothing after that date. It will keep working
+> and your data stays readable — it simply will not be patched again. See
+> [SECURITY.md](https://github.com/davmixcool/cryptman/blob/master/SECURITY.md).
+>
+> 2.x replaces the unauthenticated ciphers below with authenticated encryption
+> (XChaCha20-Poly1305) and can still decrypt everything 1.x wrote. See the
+> [upgrade guide](https://github.com/davmixcool/cryptman/blob/master/docs/upgrading.md).
 >
 > 2.x requires PHP 8.2+. **If you are on an older PHP, stay on 1.x** — Composer
 > will not offer you 2.x, and nothing will break. Apply the key fix above; it is
