@@ -136,6 +136,12 @@ $old = (new Cryptman(['key' => $k, 'method' => 'aes-256-gcm']))->encrypt('x');
 (new Cryptman(['key' => $k]))->decrypt($old);   // still reads
 ```
 
+### The format itself
+
+The wire format is specified in [SPEC.md](../SPEC.md), with test vectors — read
+that if you are implementing Cryptman in another language, or need to know
+exactly what is stored.
+
 ### Why not other ciphers?
 
 Every method is a permanent commitment — once a payload exists using it, it

@@ -1,84 +1,88 @@
 {
-  "name": "davmixcool/cryptman",
-  "type": "library",
-  "description": "Dead-simple two-way encryption for PHP, with tamper detection built in.",
-  "keywords": [
-    "two-way",
-    "two-way-encryption",
-    "encryption",
-    "decryption",
-    "cipher",
-    "decipher",
-    "encrypter",
-    "decrypter",
-    "crypto",
-    "secure",
-    "security",
-    "aead",
-    "authenticated-encryption",
-    "xchacha20",
-    "chacha20-poly1305",
-    "aes-gcm",
-    "libsodium",
-    "sodium"
-  ],
-  "homepage": "https://github.com/davmixcool/cryptman",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "David Oti",
-      "email": "davmixcool@gmail.com",
-      "role": "Software Developer"
-    }
-  ],
-  "require": {
-    "php": "^8.2",
-    "ext-openssl": "*",
-    "ext-mbstring": "*",
-    "ext-ctype": "*"
-  },
-  "require-dev": {
-    "laravel/pint": "^1.18",
-    "pestphp/pest": "^3.0",
-    "phpstan/phpstan": "^2.1"
-  },
-  "suggest": {
-    "ext-sodium": "Required for the default xchacha20-poly1305 method (bundled with PHP since 7.2)"
-  },
-  "autoload": {
-    "psr-4": {
-      "Davmixcool\\": "src"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Davmixcool\\Tests\\": "tests/"
-    }
-  },
-  "bin": [
-    "bin/cryptman"
-  ],
-  "scripts": {
-    "test": "pest",
-    "corpus:check": "pest --group=corpus",
-    "corpus:regen-check": "php tools/generate-v1-corpus.php --verify-only",
-    "benchmark": "php tools/benchmark.php",
-    "analyse": "phpstan analyse --memory-limit=512M",
-    "lint": "pint --test",
-    "fix": "pint",
-    "ci": [
-      "@composer validate --strict --no-check-lock",
-      "@lint",
-      "@analyse",
-      "@test"
-    ]
-  },
-  "config": {
-    "allow-plugins": {
-      "pestphp/pest-plugin": true
+    "name": "davmixcool/cryptman",
+    "type": "library",
+    "description": "Dead-simple two-way encryption for PHP, with tamper detection built in.",
+    "keywords": [
+        "two-way",
+        "two-way-encryption",
+        "encryption",
+        "decryption",
+        "cipher",
+        "decipher",
+        "encrypter",
+        "decrypter",
+        "crypto",
+        "secure",
+        "security",
+        "aead",
+        "authenticated-encryption",
+        "xchacha20",
+        "chacha20-poly1305",
+        "aes-gcm",
+        "libsodium",
+        "sodium"
+    ],
+    "homepage": "https://github.com/davmixcool/cryptman",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Oti",
+            "email": "davmixcool@gmail.com",
+            "role": "Software Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-openssl": "*",
+        "ext-mbstring": "*",
+        "ext-ctype": "*"
     },
-    "sort-packages": true
-  },
-  "minimum-stability": "stable",
-  "prefer-stable": true
+    "require-dev": {
+        "laravel/pint": "^1.18",
+        "pestphp/pest": "^3.0",
+        "phpstan/phpstan": "^2.1"
+    },
+    "suggest": {
+        "ext-sodium": "Required for the default xchacha20-poly1305 method (bundled with PHP since 7.2)"
+    },
+    "autoload": {
+        "psr-4": {
+            "Davmixcool\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Davmixcool\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/cryptman"
+    ],
+    "scripts": {
+        "test": "pest",
+        "corpus:check": "pest --group=corpus",
+        "corpus:regen-check": "php tools/generate-v1-corpus.php --verify-only",
+        "benchmark": "php tools/benchmark.php",
+        "spec:vectors": "php tools/generate-spec-vectors.php",
+        "analyse": "phpstan analyse --memory-limit=512M",
+        "lint": "pint --test",
+        "fix": "pint",
+        "ci": [
+            "@composer validate --strict --no-check-lock",
+            "@lint",
+            "@analyse",
+            "@test"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts-descriptions": {
+        "spec:vectors": "Regenerate the test vectors published in SPEC.md"
+    }
 }

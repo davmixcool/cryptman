@@ -44,6 +44,12 @@ no `key_id` configured this version writes byte-identical output — so 2.0.0 an
 - **`inspect` gained a `key_id` column**, so an operator can see which key wrote
   a payload without holding any key material.
 
+- **[SPEC.md](SPEC.md)** — a language-neutral specification of the `cman2`
+  payload format, with test vectors, so Cryptman can be implemented in other
+  languages. The vectors are generated from the shipping code and verified
+  through its public API, and a test decrypts the ones published in the document
+  so it cannot drift. Regenerate with `composer spec:vectors`.
+
 ### Changed
 
 - **`describe()` and `inspect()` now return a `key_id`.** It is read from the
