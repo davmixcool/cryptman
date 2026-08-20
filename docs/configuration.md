@@ -10,6 +10,8 @@ new Davmixcool\Cryptman([
     'key'    => $key,             // required
     'method' => 'aes-256-gcm',    // optional, see below
 
+    'key_id' => 'ck_01J6...',     // optional, records which key encrypted a value
+
     'previous_keys' => [$old],    // optional, key rotation
 
     'legacy' => [                 // optional, v1 migration only
@@ -30,6 +32,7 @@ written. Convert before you pass it in; the CLI does exactly that.
 - [Choosing an encryption method](#choosing-an-encryption-method)
 - [Associated data](#associated-data)
 - [Key rotation](#key-rotation)
+- [Key ids](#key-ids)
 - [JSON helpers](#json-helpers)
 - [Exceptions](#exceptions)
 - [Framework integration](#framework-integration)
@@ -173,6 +176,82 @@ then each previous key in order.
 returns plausible-looking garbage rather than failing, so trying several keys
 cannot tell success from corruption. Legacy reads use a single designated key —
 see [upgrading](upgrading.md).
+
+## Key ids
+
+A key id records *which* key encrypted a value. It is optional, and it travels
+in cleartext beside the ciphertext.
+
+```php
+new Cryptman([
+    'key'    => $currentKey,
+    'key_id' => 'ck_01J6ABCDEF',
+
+    'previous_keys' => [
+        'ck_01J5ZYXWVU' => $lastYearsKey,
+    ],
+]);
+```
+
+```
+cman2.ck_01J6ABCDEF.WvXk3n...
+```
+
+Generate ids with `Cryptman::generateKeyId()`, or
+`php vendor/bin/cryptman key:generate --id`.
+
+### Why you would want one
+
+Without ids, you cannot ask *"which rows still use the old key?"* except by
+trying to decrypt every row with every key. With ids it is a query over a
+column, needing no keys and revealing no plaintext:
+
+```sql
+-- MySQL. The CASE matters: rows written without a key id have only one
+-- separator, and extracting blindly would report their ciphertext as an id.
+SELECT
+    CASE WHEN secret LIKE 'cman2.%.%'
+         THEN SUBSTRING_INDEX(SUBSTRING_INDEX(secret, '.', 2), '.', -1)
+         ELSE '(no key id)'
+    END AS key_id,
+    COUNT(*)
+FROM users
+GROUP BY key_id;
+```
+
+That is what makes it safe to retire a key: you can prove nothing still depends
+on it, instead of assuming.
+
+Decryption also goes straight to the named key rather than trying each in turn
+(measured at 2.1× faster for 1 KB values with five keys, 1.5× at 100 KB — real,
+but not the reason to adopt this).
+
+### Use opaque ids
+
+`Cryptman::generateKeyId()` produces meaningless ids on purpose. An id like
+`ck_prod_2026_08` sits in plaintext next to every encrypted value and tells
+anyone who can read the column which environment they have found and roughly how
+old the key is. Keep the human-readable label somewhere that is not the
+ciphertext.
+
+Ids must match `[A-Za-z0-9_-]` and be 1–64 characters.
+
+### What it does not change
+
+Adding `key_id` does not re-encrypt anything. Existing values keep their current
+form and stay readable; only new writes carry the id. To stamp old values, run
+them through re-encryption — see [upgrading](upgrading.md).
+
+Payloads whose id is not in your ring still fall back to trying every key, so a
+value written by a key you have not registered yet is not lost.
+
+### One rollout constraint
+
+A reader on **2.0.0 cannot read a payload carrying a key id.** It fails loudly
+with `InvalidPayloadException` — never silent corruption — but it does fail. If
+several applications share an encrypted column, upgrade all of them to 2.1 before
+setting `key_id` on any writer. Leave `key_id` unset and 2.1 writes exactly what
+2.0.0 wrote, so the two versions interoperate freely.
 
 ## JSON helpers
 

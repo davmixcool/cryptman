@@ -7,6 +7,73 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [Unreleased] — 2.1.0
+
+Key ids: an optional label recording *which* key encrypted a value.
+
+**Nothing about 2.0.0 changes.** Existing payloads decrypt unchanged, and with
+no `key_id` configured this version writes byte-identical output — so 2.0.0 and
+2.1 interoperate freely until you opt in.
+
+### Added
+
+- **Key ids.** Set `key_id` and payloads become `cman2.<key_id>.<body>`,
+  recording which key wrote each value:
+
+  ```php
+  new Cryptman([
+      'key'    => $current,
+      'key_id' => 'ck_01J6ABCDEF',
+      'previous_keys' => ['ck_01J5ZYXWVU' => $old],
+  ]);
+  ```
+
+  This exists so you can answer *"which rows still need this key?"* with a
+  grouped count over a column — no keys held, no plaintext produced — instead of
+  trial-decrypting every row. That is what makes retiring a key provable rather
+  than assumed. See [docs/configuration.md](docs/configuration.md#key-ids).
+
+- **`previous_keys` accepts an `id => key` map**, alongside the existing plain
+  list. A mixed array is rejected rather than half-honoured.
+
+- **`Cryptman::generateKeyId()`** and **`cryptman key:generate --id`**, producing
+  opaque ids. Opaque on purpose: an id like `ck_prod_2026_08` travels in
+  cleartext beside every value and tells anyone reading the column which
+  environment they found and how old the key is.
+
+- **`inspect` gained a `key_id` column**, so an operator can see which key wrote
+  a payload without holding any key material.
+
+### Changed
+
+- **`describe()` and `inspect()` now return a `key_id`.** It is read from the
+  *payload*. `inspect()` previously reported the currently-configured key's id,
+  which described the caller rather than the payload; it read as `null` in every
+  real call, so nothing depended on it.
+
+- **`DriverInterface::encrypt()` takes a fourth `?string $keyId` argument.**
+  Only relevant if you implemented the interface yourself — the four bundled
+  drivers are unaffected.
+
+### Security
+
+- **The key id is authenticated.** It is not secret, but it is covered by the
+  AEAD associated data, so it cannot be rewritten to misdirect migration
+  accounting without failing authentication. It is length-prefixed rather than
+  separator-delimited so caller-supplied associated data cannot forge its
+  framing.
+
+### Compatibility
+
+- Payloads written by 2.0.0 decrypt unchanged — verified against the published
+  2.0.0 release across all four algorithms, with and without associated data.
+- With no `key_id` set, output is byte-identical to 2.0.0.
+- **A reader on 2.0.0 cannot read a payload carrying a key id.** It fails loudly
+  with `InvalidPayloadException`, never silently. If several applications share
+  an encrypted column, upgrade all of them before setting `key_id` on any writer.
+
+---
+
 ## [2.0.0] — 2026-08-19
 
 Cryptman v2 replaces the encryption underneath and keeps the API. **Data
@@ -104,6 +171,7 @@ Final 1.x release. Security warning only; no behaviour changed.
 Initial release. Two-way encryption via OpenSSL, with a configurable cipher
 method.
 
+[Unreleased]: https://github.com/davmixcool/cryptman/compare/v2.0.0...master
 [2.0.0]: https://github.com/davmixcool/cryptman/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/davmixcool/cryptman/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/davmixcool/cryptman/releases/tag/v1.0.0

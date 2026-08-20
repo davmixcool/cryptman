@@ -24,6 +24,13 @@ final class PayloadEncoder
             .$payload->nonce
             .$payload->ciphertext;
 
-        return EncryptedPayload::PREFIX.KeyGenerator::base64UrlEncode($frame);
+        // Without a key id the output is exactly what pre-2.1.0 produced, so
+        // adopting this version does not silently rewrite the shape of values
+        // already in a database column.
+        $prefix = $payload->keyId === null
+            ? EncryptedPayload::PREFIX
+            : EncryptedPayload::PREFIX.$payload->keyId.'.';
+
+        return $prefix.KeyGenerator::base64UrlEncode($frame);
     }
 }

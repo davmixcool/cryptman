@@ -21,6 +21,11 @@ final class KeyGenerator
 {
     public const PREFIX = 'cman_key_';
 
+    /** Key id prefix, so an id is recognisable in a database column. */
+    public const ID_PREFIX = 'ck_';
+
+    public const ID_BYTES = 16;
+
     /** Raw entropy behind a generated key, in bytes. */
     public const KEY_BYTES = 32;
 
@@ -32,6 +37,24 @@ final class KeyGenerator
     public static function generate(): string
     {
         return self::PREFIX.self::base64UrlEncode(random_bytes(self::KEY_BYTES));
+    }
+
+    /**
+     * Generate an opaque key id.
+     *
+     * Deliberately meaningless. A key id travels in cleartext next to every
+     * value it encrypted, so a descriptive one like "ck_prod_2026_08" tells
+     * anyone who can read the column which environment they are looking at and
+     * roughly how old the key is -- free reconnaissance for deciding what is
+     * worth attacking. Map opaque ids to human labels somewhere that is not the
+     * ciphertext.
+     *
+     * 16 bytes: collision-safe for any realistic number of keys, and short
+     * enough that the id costs little beside the payload.
+     */
+    public static function generateId(): string
+    {
+        return self::ID_PREFIX.self::base64UrlEncode(random_bytes(self::ID_BYTES));
     }
 
     /** Whether a value carries the Cryptman key prefix. */

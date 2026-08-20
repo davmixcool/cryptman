@@ -8,6 +8,7 @@ use Davmixcool\Cryptman\Console\Environment;
 use Davmixcool\Cryptman\Console\ExitCode;
 use Davmixcool\Cryptman\Console\Streams;
 use Davmixcool\Cryptman\Keys\Key;
+use Davmixcool\Cryptman\Payload\EncryptedPayload;
 
 /**
  * Runs the CLI entirely in-process.
@@ -92,6 +93,22 @@ describe('key:generate', function () {
     it('differs every time', function () {
         expect(cli(['key:generate'])['out'])->not->toBe(cli(['key:generate'])['out']);
     });
+
+    it('prints a key id instead of a key with --id', function () {
+        $r = cli(['key:generate', '--id']);
+
+        expect($r['code'])->toBe(ExitCode::OK)
+            ->and($r['err'])->toBe('')
+            // "Instead of", not "as well as": one value on stdout is what keeps
+            // this safe inside a shell substitution.
+            ->and($r['out'])->not->toContain('cman_key_')
+            ->and(EncryptedPayload::isValidKeyId(trim($r['out'])))->toBeTrue();
+    });
+
+    it('generates a distinct id every time', function () {
+        expect(cli(['key:generate', '--id'])['out'])
+            ->not->toBe(cli(['key:generate', '--id'])['out']);
+    });
 });
 
 describe('inspect', function () {
@@ -100,13 +117,23 @@ describe('inspect', function () {
         $r = cli(['inspect', $payload]);
 
         expect($r['code'])->toBe(ExitCode::OK)
-            ->and($r['out'])->toBe("2\txchacha20-poly1305\tno\tok\n");
+            ->and($r['out'])->toBe("2\txchacha20-poly1305\t-\tno\tok\n");
+    });
+
+    it('reports the key id of a keyed payload', function () {
+        // The operator-facing half of key ids: answering "which key wrote
+        // this?" without holding any key material.
+        $payload = (new Cryptman(['key' => 'k', 'key_id' => 'ck_alpha']))->encrypt('x');
+        $r = cli(['inspect', $payload]);
+
+        expect($r['code'])->toBe(ExitCode::OK)
+            ->and($r['out'])->toBe("2\txchacha20-poly1305\tck_alpha\tno\tok\n");
     });
 
     it('describes a v1 token', function () {
         $r = cli(['inspect', v1Token('legacy')]);
 
-        expect($r['code'])->toBe(ExitCode::OK)->and($r['out'])->toBe("1\t-\tyes\tok\n");
+        expect($r['code'])->toBe(ExitCode::OK)->and($r['out'])->toBe("1\t-\t-\tyes\tok\n");
     });
 
     it('reads payloads from stdin, one per line', function () {

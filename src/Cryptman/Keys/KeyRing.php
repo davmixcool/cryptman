@@ -32,6 +32,9 @@ final class KeyRing
     /** @var list<Key> */
     private readonly array $previous;
 
+    /** @var array<string,Key> */
+    private readonly array $byId;
+
     /**
      * $previous is deliberately typed loosely.
      *
@@ -66,6 +69,36 @@ final class KeyRing
         }
 
         $this->previous = $validated;
+
+        $byId = [];
+
+        foreach ([$this->current, ...$validated] as $key) {
+            $id = $key->id();
+
+            if ($id === null) {
+                continue;
+            }
+
+            // Duplicate ids would make lookup depend on ring order, so the
+            // same ciphertext could resolve to different keys depending on how
+            // the config happened to be written. Reject rather than pick one.
+            if (isset($byId[$id])) {
+                throw new InvalidConfigurationException(sprintf(
+                    'Duplicate key id "%s". Each key in the ring must have a distinct id.',
+                    $id
+                ));
+            }
+
+            $byId[$id] = $key;
+        }
+
+        $this->byId = $byId;
+    }
+
+    /** The key carrying this id, or null if the ring has no such key. */
+    public function findById(string $id): ?Key
+    {
+        return $this->byId[$id] ?? null;
     }
 
     /** The key new payloads are encrypted with. */

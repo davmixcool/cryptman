@@ -46,6 +46,14 @@ export CRYPTMAN_KEY="$(php vendor/bin/cryptman key:generate)"
 Prints a key to STDOUT and nothing else, so it composes. Any human guidance
 goes to STDERR and only when you are watching, so a pipe stays clean.
 
+```shell
+php vendor/bin/cryptman key:generate --id     # ck_VGS9TWbHvhtCLWT0cPOgKg
+```
+
+`--id` prints an opaque [key id](configuration.md#key-ids) *instead of* a key —
+never both, so STDOUT still carries exactly one value and stays safe to capture
+in a shell substitution.
+
 ## `inspect`
 
 ```shell
@@ -57,12 +65,17 @@ Needs **no key and no configuration** — it never decrypts. One tab-separated
 record per payload:
 
 ```
-2	xchacha20-poly1305	no	ok
-1	-	yes	ok
--	-	-	unrecognised
+2	xchacha20-poly1305	ck_01J6ABC	no	ok
+2	aes-256-gcm	-	no	ok
+1	-	-	yes	ok
+-	-	-	-	unrecognised
 ```
 
-Columns: version, method, whether it needs upgrading, status.
+Columns: version, method, [key id](configuration.md#key-ids), whether it needs
+upgrading, status. A `-` in the key id column means the payload carries none.
+
+That third column is the useful one during a rotation: it answers "which key
+wrote this?" without holding any key material.
 
 | status | meaning |
 |---|---|

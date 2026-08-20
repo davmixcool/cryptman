@@ -15,6 +15,7 @@ use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
 use Davmixcool\Cryptman\Keys\Key;
 use Davmixcool\Cryptman\Keys\KeyGenerator;
 use Davmixcool\Cryptman\Keys\KeyRing;
+use Davmixcool\Cryptman\Payload\EncryptedPayload;
 use Davmixcool\Cryptman\Payload\PayloadDecoder;
 use Davmixcool\Cryptman\Payload\PayloadEncoder;
 
@@ -34,8 +35,10 @@ use Davmixcool\Cryptman\Payload\PayloadEncoder;
  *     [
  *         'key'    => string,          // required - there is NO default
  *         'method' => string,          // optional, defaults to xchacha20-poly1305
+ *         'key_id' => string,          // optional, stamps which key encrypted a value
  *
  *         'previous_keys' => string[], // optional, rotation (v2 payloads only)
+ *              // or, to name them:  ['ck_01J5...' => 'old-key', ...]
  *
  *         'legacy' => [                // optional, migration only
  *             'key'    => string,      // defaults to 'key'
@@ -98,12 +101,13 @@ class Cryptman
         // effectively public - Key::fromUserInput() throws instead.
         $key = self::stringOption($options, 'key', '');
 
+        $keyId = isset($options['key_id'])
+            ? self::keyIdOption($options['key_id'], 'key_id')
+            : null;
+
         $this->keys = new KeyRing(
-            Key::fromUserInput($key),
-            array_map(
-                static fn (mixed $previous): Key => Key::fromUserInput(self::asString($previous, 'previous_keys')),
-                array_values((array) ($options['previous_keys'] ?? []))
-            )
+            Key::fromUserInput($key, $keyId),
+            self::previousKeys($options['previous_keys'] ?? [])
         );
 
         [$encryptionMethod, $inferredLegacyMethod] = $this->resolveMethod(
@@ -163,6 +167,16 @@ class Cryptman
     }
 
     /**
+     * Generate an opaque key id, for stamping which key encrypted a value.
+     *
+     * Opaque on purpose - see KeyGenerator::generateId().
+     */
+    public static function generateKeyId(): string
+    {
+        return KeyGenerator::generateId();
+    }
+
+    /**
      * Set the value for a following encrypt() or decrypt().
      *
      * Retained from v1 so existing code keeps working. New code should pass the
@@ -179,8 +193,15 @@ class Cryptman
     {
         $plaintext = $this->resolveInput($data);
 
+        $current = $this->keys->current();
+
         return $this->encoder->encode(
-            $this->driver->encrypt($plaintext, $this->keys->current()->material(), $associatedData)
+            $this->driver->encrypt(
+                $plaintext,
+                $current->material(),
+                $associatedData,
+                $current->id()
+            )
         );
     }
 
@@ -205,6 +226,35 @@ class Cryptman
         $decoded = $this->decoder->decode($value);
         $driver = $this->driverForAlgorithm($decoded->algorithmId);
 
+        // A payload naming a key the ring holds is not a search problem: that
+        // key is the only one that can be correct, so failing under it is a
+        // real failure. Falling through to the other keys would turn a precise
+        // "this value was tampered with" into a vague "nothing worked", and
+        // would do it while burning a full authentication pass per key.
+        if ($decoded->keyId !== null) {
+            $named = $this->keys->findById($decoded->keyId);
+
+            if ($named !== null) {
+                try {
+                    return $driver->decrypt($decoded, $named->material(), $associatedData);
+                } catch (DecryptionException $e) {
+                    throw new DecryptionException(
+                        sprintf(
+                            'Payload failed authentication under key "%s", the key it names. '
+                            .'It was modified or bound to different associated data.',
+                            $decoded->keyId
+                        ),
+                        0,
+                        $e
+                    );
+                }
+            }
+        }
+
+        // No key id, or one the ring does not know. The latter is expected
+        // mid-rotation, when a value was written by a key that has not been
+        // added to this deployment's config yet, so it falls back rather than
+        // failing outright.
         $failure = null;
 
         foreach ($this->keys->all() as $key) {
@@ -213,6 +263,19 @@ class Cryptman
             } catch (DecryptionException $e) {
                 $failure = $e;
             }
+        }
+
+        if ($decoded->keyId !== null) {
+            throw new DecryptionException(
+                sprintf(
+                    'Payload names key "%s", which is not configured, and failed authentication '
+                    .'under all %d available key(s). Add that key to "previous_keys".',
+                    $decoded->keyId,
+                    $this->keys->count()
+                ),
+                0,
+                $failure
+            );
         }
 
         throw new DecryptionException(
@@ -256,7 +319,11 @@ class Cryptman
      */
     public function inspect(string $payload): array
     {
-        return self::describe($payload) + ['key_id' => $this->keys->current()->id()];
+        // Delegates entirely. Before key ids reached the wire this reported
+        // the CONFIGURED key's id, which answered a different question than
+        // the one inspect() asks -- it described the caller, not the payload.
+        // It read as null in every real call, so nothing depended on it.
+        return self::describe($payload);
     }
 
     /**
@@ -272,7 +339,7 @@ class Cryptman
      * Malformed input still throws. Returning something like ['version' => 0]
      * for garbage would push the decision onto every caller.
      *
-     * @return array{version:int,driver:?string}
+     * @return array{version:int,driver:?string,key_id:?string}
      *
      * @throws InvalidPayloadException malformed v2 frame
      * @throws Cryptman\Exceptions\UnsupportedVersionException written by a newer Cryptman
@@ -283,10 +350,12 @@ class Cryptman
         $decoder = new PayloadDecoder();
 
         if (! $decoder->looksLikeV2($payload)) {
-            return ['version' => 1, 'driver' => null];
+            return ['version' => 1, 'driver' => null, 'key_id' => null];
         }
 
-        return ['version' => 2, 'driver' => $decoder->decode($payload)->name()];
+        $decoded = $decoder->decode($payload);
+
+        return ['version' => 2, 'driver' => $decoded->name(), 'key_id' => $decoded->keyId];
     }
 
     /** Whether a payload predates the current format and should be re-encrypted. */
@@ -517,5 +586,71 @@ class Cryptman
         }
 
         return $value;
+    }
+
+    private static function keyIdOption(mixed $value, string $name): string
+    {
+        $id = self::asString($value, $name);
+
+        if (! EncryptedPayload::isValidKeyId($id)) {
+            throw new InvalidConfigurationException(sprintf(
+                'Option "%s" must be 1-%d characters matching [A-Za-z0-9_-], got "%s". '
+                .'Key ids travel in cleartext beside the ciphertext, so prefer an opaque '
+                .'value over one naming the environment.',
+                $name,
+                EncryptedPayload::KEY_ID_MAX_BYTES,
+                $id
+            ));
+        }
+
+        return $id;
+    }
+
+    /**
+     * Build the previous-key list from either supported shape.
+     *
+     * A plain list carries no ids:      ['old-secret', 'older-secret']
+     * A map names each key:             ['ck_01J5...' => 'old-secret']
+     *
+     * A mixed array is rejected rather than half-honoured. Silently treating
+     * the string-keyed entries as identified and the rest as anonymous would
+     * produce a ring that looks configured but cannot resolve half its keys.
+     *
+     * @return list<Key>
+     */
+    private static function previousKeys(mixed $previous): array
+    {
+        if (! is_array($previous)) {
+            throw new InvalidConfigurationException(sprintf(
+                'Option "previous_keys" must be an array, %s given.',
+                get_debug_type($previous)
+            ));
+        }
+
+        $identified = 0;
+
+        foreach (array_keys($previous) as $index) {
+            if (is_string($index)) {
+                $identified++;
+            }
+        }
+
+        if ($identified > 0 && $identified !== count($previous)) {
+            throw new InvalidConfigurationException(
+                'Option "previous_keys" mixes identified and anonymous keys. Use either a '
+                .'list of key strings, or a map of key id => key string, not both.'
+            );
+        }
+
+        $keys = [];
+
+        foreach ($previous as $index => $value) {
+            $keys[] = Key::fromUserInput(
+                self::asString($value, 'previous_keys'),
+                is_string($index) ? self::keyIdOption($index, 'previous_keys key id') : null
+            );
+        }
+
+        return $keys;
     }
 }

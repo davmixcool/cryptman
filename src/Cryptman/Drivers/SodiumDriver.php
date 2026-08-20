@@ -37,19 +37,24 @@ final class SodiumDriver implements DriverInterface
             && function_exists('sodium_crypto_aead_xchacha20poly1305_ietf_encrypt');
     }
 
-    public function encrypt(string $plaintext, string $key, ?string $associatedData = null): EncryptedPayload
-    {
+    public function encrypt(
+        string $plaintext,
+        string $key,
+        ?string $associatedData = null,
+        ?string $keyId = null
+    ): EncryptedPayload {
         $this->guardKey($key);
 
         $nonce = random_bytes(EncryptedPayload::nonceBytes($this->algorithmId()));
 
         // Built before encrypting so the header is available as associated
-        // data — the version and algorithm are authenticated alongside the
-        // ciphertext and cannot be altered independently.
+        // data — the version, algorithm and key id are authenticated alongside
+        // the ciphertext and cannot be altered independently.
         $payload = new EncryptedPayload(
             algorithmId: $this->algorithmId(),
             nonce: $nonce,
             ciphertext: '',
+            keyId: $keyId,
         );
 
         try {
@@ -69,6 +74,7 @@ final class SodiumDriver implements DriverInterface
             algorithmId: $this->algorithmId(),
             nonce: $nonce,
             ciphertext: $ciphertext,
+            keyId: $keyId,
         );
     }
 

@@ -90,8 +90,12 @@ abstract class OpenSslAeadDriver implements DriverInterface
         return self::$available[$this->cipher()] ?? false;
     }
 
-    final public function encrypt(string $plaintext, string $key, ?string $associatedData = null): EncryptedPayload
-    {
+    final public function encrypt(
+        string $plaintext,
+        string $key,
+        ?string $associatedData = null,
+        ?string $keyId = null
+    ): EncryptedPayload {
         $this->guardKey($key);
 
         $salt = KeyDeriver::generateMessageSalt();
@@ -103,6 +107,7 @@ abstract class OpenSslAeadDriver implements DriverInterface
             nonce: $nonce,
             ciphertext: '',
             salt: $salt,
+            keyId: $keyId,
         );
 
         $tag = '';
@@ -129,6 +134,7 @@ abstract class OpenSslAeadDriver implements DriverInterface
             nonce: $nonce,
             ciphertext: $ciphertext.$tag,
             salt: $salt,
+            keyId: $keyId,
         );
     }
 

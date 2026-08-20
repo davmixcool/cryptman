@@ -27,7 +27,25 @@ final class KeyGenerateCommand implements Command
     public function run(Input $input, Streams $streams): int
     {
         $input->rejectSecretOptions();
-        $input->validate(flags: [], options: []);
+        $input->validate(flags: ['id'], options: []);
+
+        // --id prints an id INSTEAD of a key, rather than both, so STDOUT
+        // still carries exactly one value and stays safe to capture in a
+        // shell substitution.
+        if ($input->flag('id')) {
+            $streams->line(Cryptman::generateKeyId()."\n");
+
+            if ($streams->isInteractive()) {
+                $streams->error(
+                    "\nA key id records which key encrypted a value. It is not secret and it "
+                    .'travels in cleartext beside the ciphertext, which is why it is opaque: a '
+                    .'descriptive id would tell anyone reading the column which environment they '
+                    ."had found.\n"
+                );
+            }
+
+            return ExitCode::OK;
+        }
 
         $streams->line(Cryptman::generateKey()."\n");
 

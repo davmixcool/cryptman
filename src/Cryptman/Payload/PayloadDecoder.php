@@ -42,6 +42,34 @@ final class PayloadDecoder
         }
 
         $body = substr($payload, strlen(EncryptedPayload::PREFIX));
+
+        // Base64url emits no ".", so the separator count alone distinguishes a
+        // keyed payload from an unkeyed one with no ambiguity and no lookahead.
+        $keyId = null;
+
+        if (str_contains($body, '.')) {
+            [$keyId, $body] = explode('.', $body, 2);
+
+            // Validated before it is used for anything. This is attacker-
+            // controlled text that will be echoed back by inspect() and used
+            // to select a key, so a hostile id must be rejected outright
+            // rather than carried around and sanitised at each use.
+            if (! EncryptedPayload::isValidKeyId($keyId)) {
+                throw new InvalidPayloadException(sprintf(
+                    'Payload carries a malformed key id. Expected 1-%d characters '
+                    .'matching [A-Za-z0-9_-].',
+                    EncryptedPayload::KEY_ID_MAX_BYTES
+                ));
+            }
+
+            // A second separator means the remaining body still holds one, and
+            // base64url cannot. Caught here rather than as "not valid base64url",
+            // which would misdescribe the cause.
+            if (str_contains($body, '.')) {
+                throw new InvalidPayloadException('Payload carries more than one key id separator.');
+            }
+        }
+
         $frame = KeyGenerator::base64UrlDecode($body);
 
         if ($frame === null) {
@@ -98,6 +126,7 @@ final class PayloadDecoder
             ciphertext: substr($frame, $offset),
             salt: $salt,
             version: $version,
+            keyId: $keyId,
         );
     }
 }

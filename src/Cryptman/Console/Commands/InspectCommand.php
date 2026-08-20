@@ -36,7 +36,7 @@ final class InspectCommand implements Command
         // The header is decoration, so it goes to STDERR and only when a human
         // is watching. A script piping this never has to skip a line.
         if ($streams->isInteractive()) {
-            $streams->error("version\tdriver\tneeds_upgrade\tstatus\n");
+            $streams->error("version\tdriver\tkey_id\tneeds_upgrade\tstatus\n");
         }
 
         $clean = true;
@@ -74,9 +74,10 @@ final class InspectCommand implements Command
             }
 
             $streams->line(sprintf(
-                "%d\t%s\t%s\tok\n",
+                "%d\t%s\t%s\t%s\tok\n",
                 $described['version'],
                 $described['driver'] ?? '-',
+                $described['key_id'] ?? '-',
                 $described['version'] === 1 ? 'yes' : 'no'
             ));
 
@@ -94,7 +95,7 @@ final class InspectCommand implements Command
 
     private function problem(Streams $streams, string $status, string $why): bool
     {
-        $streams->line(sprintf("-\t-\t-\t%s\n", $status));
+        $streams->line(sprintf("-\t-\t-\t-\t%s\n", $status));
         $streams->error($why."\n");
 
         return false;

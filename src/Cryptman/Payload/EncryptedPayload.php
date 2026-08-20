@@ -16,6 +16,18 @@ use Davmixcool\Cryptman\Exceptions\UnsupportedDriverException;
  * tax on a column holding short secrets like API tokens.
  *
  *     cman2.<base64url( header || salt? || nonce || ciphertext_with_tag )>
+ *     cman2.<key_id>.<base64url( ... )>          when a key id is configured
+ *
+ * The key id is an optional, cleartext, non-secret label naming which key
+ * encrypted the value. It exists so operators can answer "which rows still
+ * depend on this key?" with a grouped count over a column, instead of trial
+ * decryption over every row with every key. It is authenticated (see
+ * associatedData) so it cannot be rewritten to misdirect that accounting.
+ *
+ * Splitting on "." is unambiguous: base64url emits no ".", so one separator
+ * means an unkeyed payload and two means a keyed one. Payloads written before
+ * key ids existed therefore keep decoding unchanged, and their associated data
+ * is byte-identical -- see associatedData() for why that matters.
  *
  * Header, 2 bytes:
  *
@@ -62,6 +74,20 @@ final class EncryptedPayload
     /** Poly1305 and GCM both produce a 16-byte tag. */
     public const TAG_BYTES = 16;
 
+    /**
+     * Key ids are length-prefixed into the associated data by a single byte,
+     * so 255 is the hard ceiling. 64 is the enforced one: ids are labels, not
+     * payloads, and a generous bound keeps the frame small while leaving room
+     * for a ULID or a UUID with a prefix.
+     */
+    public const KEY_ID_MAX_BYTES = 64;
+
+    /**
+     * Deliberately excludes "." — the wire separator — so a valid id can never
+     * split into two, and excludes anything needing URL or shell escaping.
+     */
+    public const KEY_ID_PATTERN = '/^[A-Za-z0-9_-]{1,64}$/';
+
     /** Salt length for algorithms using per-message subkeys. */
     public const SALT_BYTES = 32;
 
@@ -88,7 +114,14 @@ final class EncryptedPayload
         public readonly string $ciphertext,
         public readonly string $salt = '',
         public readonly int $version = self::FORMAT_VERSION,
+        public readonly ?string $keyId = null,
     ) {}
+
+    /** Whether a string is usable as a key id. */
+    public static function isValidKeyId(string $keyId): bool
+    {
+        return preg_match(self::KEY_ID_PATTERN, $keyId) === 1;
+    }
 
     /** @return list<int> */
     public static function supportedAlgorithms(): array
@@ -155,14 +188,41 @@ final class EncryptedPayload
      * An empty string is treated as no associated data. Distinguishing the two
      * would mean encrypt($d) and encrypt($d, '') produced mutually
      * undecryptable payloads, which is a footgun with no use case.
+     *
+     * ---------------------------------------------------------------------
+     *  The key id is LENGTH-PREFIXED, and that is load-bearing.
+     * ---------------------------------------------------------------------
+     *
+     * Two properties have to hold at once:
+     *
+     * 1. With no key id, the output must be byte-identical to what this method
+     *    returned before key ids existed. Otherwise every payload written by
+     *    2.0.0 fails authentication on upgrade -- silent, total data loss. The
+     *    early return below is that guarantee, and the frozen corpus in
+     *    tests/Fixtures/v2-payloads.json is what proves it.
+     *
+     * 2. A key id and caller data must never be confusable. Appending the id
+     *    after the same 0x00 separator would mean a caller passing
+     *    "ck_live\0..." could forge the framing of a genuinely keyed payload.
+     *
+     * A length byte solves both: it is always >= 0x01 because empty ids are
+     * rejected, while the caller-data separator is exactly 0x00. So byte 2
+     * discriminates the two cases with no lookahead, and the unkeyed encoding
+     * is untouched.
      */
     public function associatedData(?string $callerData = null): string
     {
-        if ($callerData === null || $callerData === '') {
-            return $this->header();
+        $aad = $this->header();
+
+        if ($this->keyId !== null) {
+            $aad .= chr(strlen($this->keyId)).$this->keyId;
         }
 
-        return $this->header()."\0".$callerData;
+        if ($callerData === null || $callerData === '') {
+            return $aad;
+        }
+
+        return $aad."\0".$callerData;
     }
 
     /** @return array{name:string,nonce:positive-int,salt:int<0,max>} */

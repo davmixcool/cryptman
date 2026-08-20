@@ -23,8 +23,14 @@ interface DriverInterface
 {
     /**
      * @param  string  $key  32 bytes of derived key material
+     * @param  string|null  $keyId  stamped into the payload and authenticated
      */
-    public function encrypt(string $plaintext, string $key, ?string $associatedData = null): EncryptedPayload;
+    public function encrypt(
+        string $plaintext,
+        string $key,
+        ?string $associatedData = null,
+        ?string $keyId = null
+    ): EncryptedPayload;
 
     /**
      * @param  string  $key  32 bytes of derived key material

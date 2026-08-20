@@ -388,17 +388,16 @@ describe('migration helpers', function () {
         $v2 = cryptman()->encrypt('x');
 
         expect(Cryptman::describe($v2))
-            ->toBe(['version' => 2, 'driver' => 'xchacha20-poly1305'])
+            ->toBe(['version' => 2, 'driver' => 'xchacha20-poly1305', 'key_id' => null])
             ->and(Cryptman::describe('1f73df23a0e10e72df8d0123abcd4567body'))
-            ->toBe(['version' => 1, 'driver' => null]);
+            ->toBe(['version' => 1, 'driver' => null, 'key_id' => null]);
     });
 
     it('keeps inspect() and describe() in agreement', function (string $method) {
         $cryptman = cryptman(['method' => $method]);
         $payload = $cryptman->encrypt('x');
 
-        expect($cryptman->inspect($payload))
-            ->toBe(Cryptman::describe($payload) + ['key_id' => null]);
+        expect($cryptman->inspect($payload))->toBe(Cryptman::describe($payload));
     })->with(fn () => Cryptman::supportedMethods());
 
     it('throws on malformed input rather than inventing a version', function () {
